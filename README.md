@@ -1,10 +1,10 @@
-# adventofcode2021
+# Advent of Code 2021
 
 You need a C compiler available as `cc`.
 
-Use the build and run script to compile and run a specified day.
+Use the [build and run shell script](./build.bash) to compile and run a specific day.
 
-```console
+```
 ./build.bash DayNN.c
 ```
 
