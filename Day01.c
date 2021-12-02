@@ -8,8 +8,11 @@ static int parseInput(const char *filename, int *depths, size_t maxCount) {
     char *inputPtr = input;
     size_t depthCount = 0;
     int charsRead = 0;
+    int filled = 0;
 
-    while (sscanf(inputPtr, "%u\n%n", &depths[depthCount++], &charsRead) == 1) {
+    while ((filled = sscanf(inputPtr, "%u\n%n", &depths[depthCount++], &charsRead)) != EOF) {
+        assert(filled == 1 && "parseInput: Failed to parse input");
+
         inputPtr += charsRead;
 
         assert(depthCount < maxCount);
@@ -54,7 +57,7 @@ static int partTwo(const int *depths, size_t depthCount) {
 
 int main() {
     int depths[4096] = {0};
-    size_t depthCount = parseInput("./Day1.txt", depths, sizeof(depths) / sizeof(int));
+    size_t depthCount = parseInput("./Day01.txt", depths, sizeof(depths) / sizeof(int));
 
     int partOneResult = partOne(depths, depthCount);
     assert(partOneResult == 1139);

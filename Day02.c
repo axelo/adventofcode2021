@@ -45,20 +45,20 @@ static int parseInput(const char *filename, Command *commands, size_t maxCount) 
     return commandCount;
 }
 
-static int partOne(Command *commands, size_t commandCount) {
+static int partOne(const Command *commands, size_t commandCount) {
     int horizontalPos = 0;
     int depth = 0;
 
-    for (size_t i = 0; i < commandCount; ++i) {
-        switch (commands[i].dir) {
+    for (const Command *command = commands; command < commands + commandCount; ++command) {
+        switch (command->dir) {
         case Up:
-            depth -= commands[i].delta;
+            depth -= command->delta;
             break;
         case Down:
-            depth += commands[i].delta;
+            depth += command->delta;
             break;
         case Forward:
-            horizontalPos += commands[i].delta;
+            horizontalPos += command->delta;
             break;
         case Idle:
             break;
@@ -68,22 +68,22 @@ static int partOne(Command *commands, size_t commandCount) {
     return horizontalPos * depth;
 }
 
-static int partTwo(Command *commands, size_t commandCount) {
+static int partTwo(const Command *commands, size_t commandCount) {
     int horizontalPos = 0;
     int depth = 0;
     int aim = 0;
 
-    for (size_t i = 0; i < commandCount; ++i) {
-        switch (commands[i].dir) {
+    for (const Command *command = commands; command < commands + commandCount; ++command) {
+        switch (command->dir) {
         case Up:
-            aim -= commands[i].delta;
+            aim -= command->delta;
             break;
         case Down:
-            aim += commands[i].delta;
+            aim += command->delta;
             break;
         case Forward:
-            horizontalPos += commands[i].delta;
-            depth += aim * commands[i].delta;
+            horizontalPos += command->delta;
+            depth += aim * command->delta;
             break;
         case Idle:
             break;
@@ -95,7 +95,7 @@ static int partTwo(Command *commands, size_t commandCount) {
 
 int main() {
     Command commands[4096] = {0};
-    size_t commandCount = parseInput("./Day2.txt", commands, sizeof(commands) / sizeof(Command));
+    size_t commandCount = parseInput("./Day02.txt", commands, sizeof(commands) / sizeof(Command));
 
     int partOneResult = partOne(commands, commandCount);
     assert(partOneResult == 1815044);
