@@ -2,6 +2,11 @@
 #include <inttypes.h> // strtoimax
 #include <stdbool.h>  // bool
 
+typedef enum {
+    OxygenGeneratorRating = 1,
+    CO2ScrubberRating
+} Rating;
+
 static int parseInput(const char *filename, int *diags, size_t maxCount) {
     char input[32 * 1024] = {0};
 
@@ -27,24 +32,22 @@ static int parseInput(const char *filename, int *diags, size_t maxCount) {
 }
 
 static int partOne(const int *diags, size_t count, uint8_t bitWidth) {
-    int bitCounts[8 * sizeof(int)] = {0};
+    int bitSums[bitWidth];
 
-    assert(bitWidth <= sizeof(bitCounts) / sizeof(bitCounts[0]));
+    memset(bitSums, 0, sizeof(bitSums[0]) * bitWidth);
 
     for (size_t i = 0; i < count; ++i) {
         int diag = diags[i];
 
         for (size_t j = 0; j < bitWidth; ++j) {
-            int bit = diag & (1 << j);
-
-            bit ? ++bitCounts[j] : --bitCounts[j];
+            (diag & (1 << j)) ? ++bitSums[j] : --bitSums[j];
         }
     }
 
     int gammaRate = 0;
 
     for (size_t i = 0; i < bitWidth; ++i) {
-        gammaRate |= bitCounts[i] > 0 ? (1 << i) : 0;
+        gammaRate |= bitSums[i] > 0 ? (1 << i) : 0;
     }
 
     int epsilonRate = ~gammaRate & ((1 << bitWidth) - 1);
@@ -52,7 +55,7 @@ static int partOne(const int *diags, size_t count, uint8_t bitWidth) {
     return gammaRate * epsilonRate;
 }
 
-static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, bool oxygenGeneratorRating) {
+static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, Rating rating) {
     int filtered[count];
     int filteredCount = count;
 
@@ -70,10 +73,10 @@ static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, bool 
         int j = 0;
 
         for (int i = 0; i < filteredCount; ++i) {
-            int isBitSet = filtered[i] & bitMask;
+            bool isBitSet = filtered[i] & bitMask;
 
-            bool bitSetCondition = (oxygenGeneratorRating && isBitSet) ||
-                                   (!oxygenGeneratorRating && !isBitSet);
+            bool bitSetCondition = (rating == OxygenGeneratorRating && isBitSet) ||
+                                   (rating == CO2ScrubberRating && !isBitSet);
 
             if (((bitSum > 0 && bitSetCondition) ||
                  (bitSum < 0 && !bitSetCondition) ||
@@ -94,10 +97,8 @@ static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, bool 
 }
 
 static int partTwo(const int *diags, size_t count, uint8_t bitWidth) {
-    int oxygenGeneratorRating = partTwoRating(diags, count, bitWidth, true);
-    int co2ScrubberRating = partTwoRating(diags, count, bitWidth, false);
-
-    return oxygenGeneratorRating * co2ScrubberRating;
+    return partTwoRating(diags, count, bitWidth, OxygenGeneratorRating) *
+           partTwoRating(diags, count, bitWidth, CO2ScrubberRating);
 }
 
 int main() {
