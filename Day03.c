@@ -52,16 +52,7 @@ static int partOne(const int *diags, size_t count, uint8_t bitWidth) {
     return gammaRate * epsilonRate;
 }
 
-void binprintf(int v, uint8_t bitWidth) {
-    unsigned int mask = 1 << (bitWidth - 1);
-    while (mask) {
-        printf("%d", (v & mask ? 1 : 0));
-        mask >>= 1;
-    }
-    printf("\n");
-}
-
-static int partTwoOxygenGeneratorRating(const int *diags, size_t count, uint8_t bitWidth, bool co2Rating) {
+static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, bool oxygenGeneratorRating) {
     int filtered[count];
     int filteredCount = count;
 
@@ -69,12 +60,10 @@ static int partTwoOxygenGeneratorRating(const int *diags, size_t count, uint8_t 
 
     int bitMask = 1 << (bitWidth - 1);
 
-    while (filteredCount > 1) {
+    while (filteredCount > 1 && bitMask > 0) {
         int bitSum = 0;
 
         for (int i = 0; i < filteredCount; ++i) {
-            // binprintf(filtered[i], bitWidth);
-
             (filtered[i] & bitMask) ? ++bitSum : --bitSum;
         }
 
@@ -83,59 +72,18 @@ static int partTwoOxygenGeneratorRating(const int *diags, size_t count, uint8_t 
         for (int i = 0; i < filteredCount; ++i) {
             int isBitSet = filtered[i] & bitMask;
 
-            if ((bitSum > 0 && isBitSet) ||
-                (bitSum < 0 && !isBitSet) ||
-                (bitSum == 0 && isBitSet)) {
+            bool bitSetCondition = (oxygenGeneratorRating && isBitSet) ||
+                                   (!oxygenGeneratorRating && !isBitSet);
+
+            if (((bitSum > 0 && bitSetCondition) ||
+                 (bitSum < 0 && !bitSetCondition) ||
+                 (bitSum == 0 && bitSetCondition))) {
 
                 filtered[j++] = filtered[i];
             }
         }
 
         filteredCount = j;
-
-        // printf("mask: %d - most ones: %d - numbers left: %d\n", bitMask, bitSum, filteredCount);
-
-        bitMask >>= 1;
-    }
-
-    assert(filteredCount == 1);
-
-    return filtered[0];
-}
-
-static int partTwoO2ScrubberRating(const int *diags, size_t count, uint8_t bitWidth, bool co2Rating) {
-    int filtered[count];
-    int filteredCount = count;
-
-    memcpy(filtered, diags, sizeof(*diags) * count);
-
-    int bitMask = 1 << (bitWidth - 1);
-
-    while (filteredCount > 1) {
-        int bitSum = 0;
-
-        for (int i = 0; i < filteredCount; ++i) {
-            // binprintf(filtered[i], bitWidth);
-
-            (filtered[i] & bitMask) ? ++bitSum : --bitSum;
-        }
-
-        int j = 0;
-
-        for (int i = 0; i < filteredCount; ++i) {
-            int isBitSet = filtered[i] & bitMask;
-
-            if ((bitSum > 0 && !isBitSet) ||
-                (bitSum < 0 && isBitSet) ||
-                (bitSum == 0 && !isBitSet)) {
-
-                filtered[j++] = filtered[i];
-            }
-        }
-
-        filteredCount = j;
-
-        // printf("mask: %d - most ones: %d - numbers left: %d\n", bitMask, bitSum, filteredCount);
 
         bitMask >>= 1;
     }
@@ -146,8 +94,8 @@ static int partTwoO2ScrubberRating(const int *diags, size_t count, uint8_t bitWi
 }
 
 static int partTwo(const int *diags, size_t count, uint8_t bitWidth) {
-    int oxygenGeneratorRating = partTwoOxygenGeneratorRating(diags, count, bitWidth);
-    int co2ScrubberRating = partTwoO2ScrubberRating(diags, count, bitWidth, true);
+    int oxygenGeneratorRating = partTwoRating(diags, count, bitWidth, true);
+    int co2ScrubberRating = partTwoRating(diags, count, bitWidth, false);
 
     return oxygenGeneratorRating * co2ScrubberRating;
 }
