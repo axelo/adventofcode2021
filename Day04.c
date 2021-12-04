@@ -1,8 +1,6 @@
 #include "Helpers.c"
 #include <stdbool.h>
 
-// typedef int Board[5][5];
-
 typedef struct {
     int number;
     bool marked;
@@ -13,18 +11,20 @@ typedef Number Board[5][5];
 typedef struct {
     int firstWinningNumber;
     Board firstWinningBoard;
-    // Board winningBoard;
+
+    int lastWinningNumber;
+    Board lastWinningBoard;
 } Bingo;
 
 typedef struct {
-    int numbers[1024];
+    int numbers[256];
     int numbersCount;
 
-    Board boards[512];
+    Board boards[256];
     int boardsCount;
 } Input;
 
-static void printBoard(Board *board) {
+static void printBoard(const Board *board) {
     for (int col = 0; col < 5; ++col) {
         printf("%u %u %u %u %u\n",
                (*board)[col][0].number,
@@ -57,33 +57,19 @@ static void parseInput(const char *filename, Input *input) {
 
     assert(input->numbersCount > 0);
 
-    // for (size_t i = 0; i < input->numbersCount; ++i) {
-    //     printf("%u\n", input->numbers[i]);
-    // }
-
     char *rawInputBoards = rawInput + (numbersStringPtr - numbersString);
-
-    // printf("BOARDS: %s\n", rawInputBoards);
 
     for (filled = 0; filled != EOF; ++input->boardsCount) {
         Board *board = &input->boards[input->boardsCount];
 
-        // printf("\n\n");
-
         for (int col = 0; col < 5 && filled != EOF; ++col) {
-            int a, b, c, d, e;
-
-            filled = sscanf(rawInputBoards, "%u %u %u %u %u\n%n", &a, &b, &c, &d, &e, &charsRead);
-
-            if (filled == 5) {
-                (*board)[col][0].number = a;
-                (*board)[col][1].number = b;
-                (*board)[col][2].number = c;
-                (*board)[col][3].number = d;
-                (*board)[col][4].number = e;
-                // printf("r: %d %d %d %d %d\n", a, b, c, d, e);
-            }
-            // printf("F: %d\n", f);
+            filled = sscanf(rawInputBoards, "%u %u %u %u %u\n%n",
+                            &(*board)[col][0].number,
+                            &(*board)[col][1].number,
+                            &(*board)[col][2].number,
+                            &(*board)[col][3].number,
+                            &(*board)[col][4].number,
+                            &charsRead);
 
             rawInputBoards += charsRead;
         }
@@ -94,25 +80,19 @@ static void parseInput(const char *filename, Input *input) {
     }
 
     assert(input->boardsCount > 0);
-
-    printf("Parsed boards:\n");
-    for (int k = 0; k < input->boardsCount; ++k) {
-        printBoard(&input->boards[k]);
-    }
 }
 
-static Bingo partOnePlayBingo(Input *input) {
-    Bingo result = {0};
+static void playBingo(Input *input, Bingo *bingo) {
+    bool firstWin = false;
 
-    // printBoard(&bingoResult.winningBoard);
+    bool alreadyWonBoards[input->boardsCount];
+    memset(alreadyWonBoards, false, input->boardsCount * sizeof(bool));
 
     for (int i = 0; i < input->numbersCount; ++i) {
         int number = input->numbers[i];
 
-        // printf("Number: %d\n", number);
-
         for (int b = 0; b < input->boardsCount; ++b) {
-            Board *board = &input->boards[b];
+            Board *board = input->boards + b;
 
             for (int col = 0; col < 5; ++col) {
                 for (int row = 0; row < 5; ++row) {
@@ -124,88 +104,76 @@ static Bingo partOnePlayBingo(Input *input) {
 
             for (int col = 0; col < 5; ++col) {
                 int rowMarks = 0;
+                int colMarks = 0;
 
                 for (int row = 0; row < 5; ++row) {
                     if ((*board)[col][row].marked) {
                         ++rowMarks;
                     }
-                }
 
-                if (rowMarks == 5) {
-                    printf("5 in a row for board %d (%d)\n", b + 1, number);
-
-                    printBoard(board);
-
-                    result.firstWinningNumber = number;
-                    memcpy(&result.firstWinningBoard, board, sizeof(Board));
-
-                    return result;
-                }
-            }
-
-            for (int row = 0; row < 5; ++row) {
-                int colMarks = 0;
-
-                for (int col = 0; col < 5; ++col) {
-                    if ((*board)[col][row].marked) {
+                    if ((*board)[row][col].marked) {
                         ++colMarks;
                     }
                 }
 
-                if (colMarks == 5) {
-                    printf("5 in a column for board %d (%d)\n", b + 1, number);
+                if (rowMarks == 5 || colMarks == 5) {
+                    if (!firstWin) {
+                        firstWin = true;
+                        bingo->firstWinningNumber = number;
+                        memcpy(bingo->firstWinningBoard, board, sizeof(Board));
+                    }
 
-                    result.firstWinningNumber = number;
-                    memcpy(&result.firstWinningBoard, board, sizeof(Board));
-
-                    return result;
+                    if (!alreadyWonBoards[b]) {
+                        alreadyWonBoards[b] = true;
+                        bingo->lastWinningNumber = number;
+                        memcpy(bingo->lastWinningBoard, board, sizeof(Board));
+                    }
                 }
             }
         }
     }
-
-    return result;
 }
 
-static int partOne(Input *input) {
-    Bingo bingo = partOnePlayBingo(input);
-
-    printf("Last called number: %u\n", bingo.firstWinningNumber);
-
-    printf("Winning board:\n");
-    printBoard(&bingo.firstWinningBoard);
-
-    int unmarkedSum = 0;
+static int sumUnmarked(const Board *board) {
+    int sum = 0;
 
     for (int col = 0; col < 5; ++col) {
         for (int row = 0; row < 5; ++row) {
-            if (!bingo.firstWinningBoard[col][row].marked) {
-                unmarkedSum += bingo.firstWinningBoard[col][row].number;
+            if (!(*board)[col][row].marked) {
+                sum += (*board)[col][row].number;
             }
         }
     }
 
-    printf("unmarkedSum: %u\n", unmarkedSum);
-
-    return unmarkedSum * bingo.firstWinningNumber;
+    return sum;
 }
 
-// static int partTwo(const Input *input) {
-//     return -1;
-// }
+static int partOne(const Bingo *bingo) {
+    return sumUnmarked(&bingo->firstWinningBoard) * bingo->firstWinningNumber;
+}
+
+static int partTwo(const Bingo *bingo) {
+    return sumUnmarked(&bingo->lastWinningBoard) * bingo->lastWinningNumber;
+}
 
 int main() {
     Input input = {0};
     parseInput("./Day04.txt", &input);
 
-    int partOneResult = partOne(&input);
-    // assert(partOneResult == 4512);
+    Bingo bingo = {0};
+    playBingo(&input, &bingo);
+
+    int partOneResult = partOne(&bingo);
+    // assert(partOneResult == 4512); // Example
     assert(partOneResult == 21607);
     printf("Part one: %d \n", partOneResult);
+    printBoard(&bingo.firstWinningBoard);
 
-    // int partTwoResult = partTwo(commands, commandCount);
-    // assert(partTwoResult == 1739283308);
-    // printf("Part two: %d \n", partTwoResult);
+    int partTwoResult = partTwo(&bingo);
+    // assert(partTwoResult == 1924); // Example
+    assert(partTwoResult == 19012);
+    printf("Part two: %d \n", partTwoResult);
+    printBoard(&bingo.lastWinningBoard);
 
     return 0;
 }
