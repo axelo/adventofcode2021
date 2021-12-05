@@ -83,8 +83,6 @@ static void drawLines(int nLines, const Line lines[nLines], int h, int w, int di
         int y1 = lines[i][0].y;
         int y2 = lines[i][1].y;
 
-        printf("(x1,y1): (%d,%d) -> (x2,y2): (%d,%d)\n", x1, y1, x2, y2);
-
         int xStep = x1 == x2  ? 0
                     : x1 < x2 ? 1
                               : -1;
