@@ -1,20 +1,21 @@
 #include "Helpers.c"
 
-static void parseInput(const char *filename, int64_t (*fishes)[9]) {
+static void parseInput(const char *filename, int64_t fish[9]) {
     char input[32 * 1024];
     readInput(filename, input, sizeof(input));
 
     char *inputPtr = input;
     int charsRead = 0;
-
+    int filled = 0;
     int timer = 0;
 
-    memset(fishes, 0, sizeof(*fishes));
+    memset(fish, 0, 9 * sizeof(fish[0]));
 
-    while (sscanf(inputPtr, "%d,%n", &timer, &charsRead) != EOF) {
+    while ((filled = sscanf(inputPtr, "%d,%n", &timer, &charsRead)) != EOF) {
+        assert(filled == 1);
         assert(timer >= 0 && timer <= 8);
 
-        ++(*fishes)[timer];
+        ++fish[timer];
         inputPtr += charsRead;
     }
 }
@@ -29,7 +30,6 @@ static int64_t simulate(const int64_t initialFish[9], int days) {
 
     for (int day = 0; day < days; ++day) {
         int64_t zero = fish[0];
-
         fish[0] = fish[1];
         fish[1] = fish[2];
         fish[2] = fish[3];
@@ -39,8 +39,6 @@ static int64_t simulate(const int64_t initialFish[9], int days) {
         fish[6] = fish[7] + zero;
         fish[7] = fish[8];
         fish[8] = zero;
-
-        printf("After %d day(s): %llu\n", day + 1, sumFish(fish));
     }
 
     return sumFish(fish);
@@ -56,7 +54,7 @@ static int64_t partTwo(const int64_t f[9]) {
 
 int main() {
     int64_t fish[9];
-    parseInput("./Day06.txt", &fish);
+    parseInput("./Day06.txt", fish);
 
     int64_t partOneResult = partOne(fish);
     printf("Part one: %llu\n", partOneResult);
