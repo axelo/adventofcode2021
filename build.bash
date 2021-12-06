@@ -9,4 +9,4 @@ set -euxo pipefail
 mkdir -p ./bin
 
 # -Wno-unused-variable -Wno-unused-parameter
-cc -O0 -Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum $1 -o ./bin/$1.out && ./bin/$1.out
+cc -std=c18 -O0 -Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum $1 -o ./bin/$1.out && ./bin/$1.out
