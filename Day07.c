@@ -26,8 +26,10 @@ static int parseInput(const char *filename, int capacity, int xs[capacity]) {
     return n;
 }
 
-static int compare(const void *num1, const void *num2) {
-    return (*(int *)num1 > *(int *)num2) ? 1 : -1;
+static int compareInt(const void *a, const void *b) {
+    return (*(int *)a > *(int *)b)
+               ? 1
+               : -1;
 }
 
 static int partOne(int n, const int crabXS[n]) {
@@ -37,7 +39,7 @@ static int partOne(int n, const int crabXS[n]) {
     int xs[n];
     memcpy(xs, crabXS, sizeof(xs));
 
-    qsort(xs, n, sizeof(xs[0]), compare); // O(n * log n)
+    qsort(xs, n, sizeof(xs[0]), compareInt); // O(n * log n)
 
     int midpoint = xs[n / 2]; // midpoint is the median position
     int fuel = 0;
@@ -51,33 +53,32 @@ static int partOne(int n, const int crabXS[n]) {
     return fuel;
 }
 
+static int partTwoFuelCost(int midpoint, int n, const int xs[n]) {
+    int fuel = 0;
+
+    for (int i = 0; i < n; ++i) { // O(n)
+        int steps = abs(midpoint - xs[i]);
+
+        for (int j = 1; j <= steps; ++j) {
+            fuel += j;
+        }
+    }
+
+    return fuel;
+}
+
 static int partTwo(int n, const int xs[n]) {
-    int average = 0;
-    for (int i = 0; i < n; ++i) { // O(n)
-        average += xs[i];
-    }
-
-    int midpoint1 = (int)floor((float)average / n);
-    int fuel1 = 0;
+    int xsSum = 0;
 
     for (int i = 0; i < n; ++i) { // O(n)
-        int steps = abs(midpoint1 - xs[i]);
-
-        for (int j = 1; j <= steps; ++j) {
-            fuel1 += j;
-        }
+        xsSum += xs[i];
     }
 
-    int midpoint2 = (int)ceil((float)average / n);
-    int fuel2 = 0;
+    int midpoint1 = (int)floor((float)xsSum / n); // First midpoint is the low part of the avarage x
+    int fuel1 = partTwoFuelCost(midpoint1, n, xs);
 
-    for (int i = 0; i < n; ++i) { // O(n)
-        int steps = abs(midpoint2 - xs[i]);
-
-        for (int j = 1; j <= steps; ++j) {
-            fuel2 += j;
-        }
-    }
+    int midpoint2 = (int)ceil((float)xsSum / n); // Second midpoint is the high part of the avarage x
+    int fuel2 = partTwoFuelCost(midpoint2, n, xs);
 
     return fuel1 < fuel2
                ? fuel1
