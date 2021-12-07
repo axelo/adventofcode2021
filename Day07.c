@@ -1,6 +1,6 @@
 #include "Helpers.c"
 #include <limits.h> // INT_MAX
-#include <math.h>   // round
+#include <math.h>   // ceil, floor
 #include <stdlib.h> // abs, qsort
 
 static int parseInput(const char *filename, int capacity, int xs[capacity]) {
