@@ -15,9 +15,9 @@ static int parseInput(const char *filename, int capacity, int xs[capacity]) {
 
     while ((filled = sscanf(inputPtr, "%d,%n", &x, &charsRead)) != EOF) {
         assert(filled == 1);
-        assert(x < capacity);
 
         xs[n++] = x;
+        assert(n < capacity);
 
         inputPtr += charsRead;
     }
