@@ -56,7 +56,7 @@ static int partOne(int n, const int crabXS[n]) {
 static int partTwoFuelCost(int midpoint, int n, const int xs[n]) {
     int fuel = 0;
 
-    for (int i = 0; i < n; ++i) { // O(n)
+    for (int i = 0; i < n; ++i) { // O(n*n)
         int steps = abs(midpoint - xs[i]);
 
         for (int j = 1; j <= steps; ++j) {
