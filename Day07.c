@@ -27,7 +27,7 @@ static int parseInput(const char *filename, int capacity, int xs[capacity]) {
 }
 
 static int compareInt(const void *a, const void *b) {
-    return (*(int *)a > *(int *)b)
+    return (*(const int *)a > *(const int *)b)
                ? 1
                : -1;
 }
@@ -41,13 +41,11 @@ static int partOne(int n, const int crabXS[n]) {
 
     qsort(xs, n, sizeof(xs[0]), compareInt); // O(n * log n)
 
-    int midpoint = xs[n / 2]; // midpoint is the median position
+    int midpoint = xs[n / 2]; // Midpoint is the median position
     int fuel = 0;
 
     for (int j = 0; j < n; ++j) { // O(n)
-        int srcX = xs[j];
-
-        fuel += abs(midpoint - srcX);
+        fuel += abs(midpoint - xs[j]);
     }
 
     return fuel;
@@ -56,12 +54,10 @@ static int partOne(int n, const int crabXS[n]) {
 static int partTwoFuelCost(int midpoint, int n, const int xs[n]) {
     int fuel = 0;
 
-    for (int i = 0; i < n; ++i) { // O(n*n)
+    for (int i = 0; i < n; ++i) { // O(n)
         int steps = abs(midpoint - xs[i]);
 
-        for (int j = 1; j <= steps; ++j) {
-            fuel += j;
-        }
+        fuel += (steps * (steps + 1)) / 2; // Formula for 1+2+3+n
     }
 
     return fuel;
@@ -74,10 +70,12 @@ static int partTwo(int n, const int xs[n]) {
         xsSum += xs[i];
     }
 
-    int midpoint1 = (int)floor((float)xsSum / n); // First midpoint is the low part of the avarage x
+    float average = (float)xsSum / n;
+
+    int midpoint1 = (int)floor(average); // First midpoint is the low part of the avarage x
     int fuel1 = partTwoFuelCost(midpoint1, n, xs);
 
-    int midpoint2 = (int)ceil((float)xsSum / n); // Second midpoint is the high part of the avarage x
+    int midpoint2 = (int)ceil(average); // Second midpoint is the high part of the avarage x
     int fuel2 = partTwoFuelCost(midpoint2, n, xs);
 
     return fuel1 < fuel2
