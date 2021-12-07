@@ -1,6 +1,7 @@
 #include "Helpers.c"
 #include <limits.h> // INT_MAX
-#include <stdlib.h> // abs
+#include <math.h>   // round
+#include <stdlib.h> // abs, qsort
 
 static int parseInput(const char *filename, int capacity, int xs[capacity]) {
     char input[32 * 1024];
@@ -25,67 +26,66 @@ static int parseInput(const char *filename, int capacity, int xs[capacity]) {
     return n;
 }
 
-static int partOne(int n, int xs[n]) {
+static int compare(const void *num1, const void *num2) {
+    return (*(int *)num1 > *(int *)num2) ? 1 : -1;
+}
+
+static int partOne(int n, const int crabXS[n]) {
     int fuels[n];
     memset(fuels, 0, n * sizeof(fuels[0]));
 
-    int minFuel = INT_MAX;
+    int xs[n];
+    memcpy(xs, crabXS, sizeof(xs));
 
-    // O(n*n)
-    for (int i = 0; i < n; ++i) {
-        int destX = xs[i];
+    qsort(xs, n, sizeof(xs[0]), compare); // O(n * log n)
 
-        for (int j = 0; j < n; ++j) {
-            int srcX = xs[j];
-            int deltaFuel = abs(destX - srcX);
+    int midpoint = xs[n / 2]; // midpoint is the median position
+    int fuel = 0;
 
-            fuels[i] += deltaFuel;
-        }
+    for (int j = 0; j < n; ++j) { // O(n)
+        int srcX = xs[j];
 
-        if (fuels[i] < minFuel) {
-            minFuel = fuels[i];
-        }
+        fuel += abs(midpoint - srcX);
     }
 
-    return minFuel;
+    return fuel;
 }
 
-static int partTwo(int n, int xs[n]) {
-    int maxX = xs[0];
+static int partTwo(int n, const int xs[n]) {
+    int average = 0;
+    for (int i = 0; i < n; ++i) { // O(n)
+        average += xs[i];
+    }
 
-    for (int i = 1; i < n; ++i) {
-        if (xs[i] > maxX) {
-            maxX = xs[i];
+    int midpoint1 = (int)floor((float)average / n);
+    int fuel1 = 0;
+
+    for (int i = 0; i < n; ++i) { // O(n)
+        int steps = abs(midpoint1 - xs[i]);
+
+        for (int j = 1; j <= steps; ++j) {
+            fuel1 += j;
         }
     }
 
-    int fuels[maxX];
-    memset(fuels, 0, maxX * sizeof(fuels[0]));
+    int midpoint2 = (int)ceil((float)average / n);
+    int fuel2 = 0;
 
-    int minFuel = INT_MAX;
+    for (int i = 0; i < n; ++i) { // O(n)
+        int steps = abs(midpoint2 - xs[i]);
 
-    // O(n*n*n)
-    for (int destX = 0; destX <= maxX; ++destX) {
-        for (int i = 0; i < n; ++i) {
-            int srcX = xs[i];
-            int steps = abs(destX - srcX);
-
-            for (int j = 1; j <= steps; ++j) {
-                fuels[destX] += j;
-            }
-        }
-
-        if (fuels[destX] < minFuel) {
-            minFuel = fuels[destX];
+        for (int j = 1; j <= steps; ++j) {
+            fuel2 += j;
         }
     }
 
-    return minFuel;
+    return fuel1 < fuel2
+               ? fuel1
+               : fuel2;
 }
 
 int main() {
-    int xs[4096];
-    memset(xs, -1, sizeof(xs));
+    int xs[4096] = {0};
 
     int n = parseInput("./Day07.txt", sizeof(xs) / sizeof(xs[0]), xs);
     assert(n > 0);
