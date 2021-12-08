@@ -4,7 +4,7 @@
 
 #include "Runner.c"
 
-static int parse(const char *inputString, INPUT entries[INPUT_CAP]) {
+static int parse(const char *inputString, INPUT input[INPUT_CAP]) {
     return 0;
 }
 
