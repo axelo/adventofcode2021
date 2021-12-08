@@ -8,5 +8,14 @@ set -euxo pipefail
 
 mkdir -p ./bin
 
-# -Wno-unused-variable -Wno-unused-parameter
-cc -std=c18 -O0 -Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum $1 -o ./bin/$1.out && ./bin/$1.out
+# -Wpedantic Reject GNU C extensions
+WARNINGS="-Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum -Wshadow"
+
+DISABLED_WARNINGS="-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function"
+DISABLED_WARNINGS=""
+
+OPTIMIZATION_LEVEL="-O0"
+
+# -std=c18 Use C standard C18
+
+cc -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $1 -o ./bin/$1.out && ./bin/$1.out
