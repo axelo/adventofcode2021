@@ -1,67 +1,71 @@
-#include "Helpers.c"
+#define DAY 03
+#define INPUT int
+#define INPUT_CAP 4096
+
 #include <inttypes.h> // strtoimax
 #include <stdbool.h>  // bool
+
+#ifdef example
+#define BIT_WIDTH 5
+#else
+#define BIT_WIDTH 12
+#endif
 
 typedef enum {
     OxygenGeneratorRating = 1,
     CO2ScrubberRating
 } Rating;
 
-static int parseInput(const char *filename, int *diags, size_t maxCount) {
-    char input[32 * 1024] = {0};
+#include "Runner.c"
 
-    readInput(filename, input, sizeof(input));
-
-    char *inputPtr = input;
-    size_t count = 0;
+static int parse(const char *inputString, int diags[INPUT_CAP]) {
+    int n = 0;
     int charsRead = 0;
     int filled = 0;
     char diagString[32];
 
-    while ((filled = sscanf(inputPtr, "%12s\n%n", diagString, &charsRead)) != EOF) {
+    while ((filled = sscanf(inputString, "%12s\n%n", diagString, &charsRead)) != EOF) {
         assert(filled == 1 && "parseInput: Failed to parse input");
 
-        inputPtr += charsRead;
+        inputString += charsRead;
 
-        diags[count++] = strtoimax(diagString, NULL, 2);
+        diags[n++] = strtoimax(diagString, NULL, 2);
 
-        assert(count < maxCount);
+        assert(n < INPUT_CAP);
     }
 
-    return count;
+    return n;
 }
 
-static int partOne(const int *diags, size_t count, uint8_t bitWidth) {
-    int bitSums[bitWidth];
+static Result solvePartOne(int n, const int diags[n]) {
+    int bitSums[BIT_WIDTH] = {0};
 
-    memset(bitSums, 0, sizeof(bitSums[0]) * bitWidth);
-
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < (size_t)n; ++i) {
         int diag = diags[i];
 
-        for (size_t j = 0; j < bitWidth; ++j) {
+        for (size_t j = 0; j < BIT_WIDTH; ++j) {
             (diag & (1 << j)) ? ++bitSums[j] : --bitSums[j];
         }
     }
 
     int gammaRate = 0;
 
-    for (size_t i = 0; i < bitWidth; ++i) {
+    for (size_t i = 0; i < BIT_WIDTH; ++i) {
         gammaRate |= bitSums[i] > 0 ? (1 << i) : 0;
     }
 
-    int epsilonRate = ~gammaRate & ((1 << bitWidth) - 1);
+    int epsilonRate = ~gammaRate & ((1 << BIT_WIDTH) - 1);
 
-    return gammaRate * epsilonRate;
+    return (Result){gammaRate * epsilonRate, 198, 3633500};
 }
 
-static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, Rating rating) {
-    int filtered[count];
-    int filteredCount = count;
+static int partTwoRating(int n, const int diags[n], Rating rating) {
+    int filtered[n];
+    int filteredCount = n;
 
-    memcpy(filtered, diags, sizeof(*diags) * count);
+    memcpy(filtered, diags, sizeof(*diags) * n);
 
-    int bitMask = 1 << (bitWidth - 1);
+    int bitMask = 1 << (BIT_WIDTH - 1);
 
     while (filteredCount > 1 && bitMask > 0) {
         int bitSum = 0;
@@ -96,20 +100,8 @@ static int partTwoRating(const int *diags, size_t count, uint8_t bitWidth, Ratin
     return filtered[0];
 }
 
-static int partTwo(const int *diags, size_t count, uint8_t bitWidth) {
-    return partTwoRating(diags, count, bitWidth, OxygenGeneratorRating) *
-           partTwoRating(diags, count, bitWidth, CO2ScrubberRating);
-}
-
-int main() {
-    int diags[4096] = {0};
-    size_t count = parseInput("./Day03.txt", diags, sizeof(diags) / sizeof(int));
-
-    int partOneResult = partOne(diags, count, 12);
-    assert(partOneResult == 3633500);
-    printf("Part one: %d\n", partOneResult);
-
-    int partTwoResult = partTwo(diags, count, 12);
-    assert(partTwoResult == 4550283);
-    printf("Part two: %d\n", partTwoResult);
+static Result solvePartTwo(int n, const int diags[n]) {
+    return (Result){
+        partTwoRating(n, diags, OxygenGeneratorRating) * partTwoRating(n, diags, CO2ScrubberRating),
+        230, 4550283};
 }

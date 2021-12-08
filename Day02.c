@@ -1,4 +1,6 @@
-#include "Helpers.c"
+#define DAY 02
+#define INPUT Command
+#define INPUT_CAP 4096
 
 typedef enum {
     Idle = 0,
@@ -12,19 +14,16 @@ typedef struct {
     int delta;
 } Command;
 
-static int parseInput(const char *filename, Command *commands, size_t maxCount) {
-    char input[32 * 1024] = {0};
+#include "Runner.c"
 
-    readInput(filename, input, sizeof(input));
-
-    char *inputPtr = input;
+static int parse(const char *inputString, Command commands[INPUT_CAP]) {
     char dirString[32] = {0};
     int charsRead = 0;
     int filled = 0;
 
-    size_t commandCount = 0;
+    int n = 0;
 
-    while ((filled = sscanf(inputPtr, "%32s %u\n%n", dirString, &commands[commandCount].delta, &charsRead)) != EOF) {
+    while ((filled = sscanf(inputString, "%32s %u\n%n", dirString, &commands[n].delta, &charsRead)) != EOF) {
         assert(filled == 2 && "parseInput: Failed to parse input");
 
         Direction dir =
@@ -35,21 +34,21 @@ static int parseInput(const char *filename, Command *commands, size_t maxCount) 
 
         assert(dir != Idle && "parseInput: Unknown direction");
 
-        commands[commandCount++].dir = dir;
+        commands[n++].dir = dir;
 
-        assert(commandCount < maxCount);
+        assert(n < INPUT_CAP);
 
-        inputPtr += charsRead;
+        inputString += charsRead;
     }
 
-    return commandCount;
+    return n;
 }
 
-static int partOne(const Command *commands, size_t commandCount) {
+static Result solvePartOne(int n, const Command commands[n]) {
     int horizontalPos = 0;
     int depth = 0;
 
-    for (const Command *command = commands; command < commands + commandCount; ++command) {
+    for (const Command *command = commands; command < commands + n; ++command) {
         switch (command->dir) {
         case Up:
             depth -= command->delta;
@@ -65,15 +64,15 @@ static int partOne(const Command *commands, size_t commandCount) {
         }
     }
 
-    return horizontalPos * depth;
+    return (Result){horizontalPos * depth, 150, 1815044};
 }
 
-static int partTwo(const Command *commands, size_t commandCount) {
+static Result solvePartTwo(int n, const Command commands[n]) {
     int horizontalPos = 0;
     int depth = 0;
     int aim = 0;
 
-    for (const Command *command = commands; command < commands + commandCount; ++command) {
+    for (const Command *command = commands; command < commands + n; ++command) {
         switch (command->dir) {
         case Up:
             aim -= command->delta;
@@ -90,20 +89,5 @@ static int partTwo(const Command *commands, size_t commandCount) {
         }
     }
 
-    return horizontalPos * depth;
-}
-
-int main() {
-    Command commands[4096] = {0};
-    size_t commandCount = parseInput("./Day02.txt", commands, sizeof(commands) / sizeof(Command));
-
-    int partOneResult = partOne(commands, commandCount);
-    assert(partOneResult == 1815044);
-    printf("Part one: %d \n", partOneResult);
-
-    int partTwoResult = partTwo(commands, commandCount);
-    assert(partTwoResult == 1739283308);
-    printf("Part two: %d \n", partTwoResult);
-
-    return 0;
+    return (Result){horizontalPos * depth, 900, 1739283308};
 }

@@ -1,11 +1,13 @@
-#include "Helpers.c"
+#define DAY 08
+#define INPUT Entry
+#define INPUT_CAP 200
 
 typedef struct {
     int signals[10];
     int outputs[4];
 } Entry;
 
-#define ENTRY_CAP 200
+#include "Runner.c"
 
 static int segmentFromChar(char c) {
     switch (c) {
@@ -31,6 +33,41 @@ static int segmentsFromString(const char *s) {
     return segments;
 }
 
+static int parse(const char *inputString, Entry entries[INPUT_CAP]) {
+    const char *inputStringEnd = inputString + strlen(inputString);
+    int charsRead = 0;
+    int n = 0;
+    char segmentsString[8] = {0};
+
+    for (; inputString < inputStringEnd; ++n) {
+        for (int i = 0; i < 10; ++i) {
+            int filled = sscanf(inputString, "%8[^ ]%n", segmentsString, &charsRead);
+            assert(filled == 1);
+
+            entries[n].signals[i] = segmentsFromString(segmentsString);
+
+            inputString += charsRead + 1;
+
+            assert(n < INPUT_CAP);
+        }
+
+        sscanf(inputString, "| %n", &charsRead);
+        inputString += charsRead;
+
+        for (int i = 0; i < 4; ++i) {
+            int filled = sscanf(inputString, "%8[^ \n]%n", segmentsString, &charsRead);
+            assert(filled == 1);
+
+            entries[n].outputs[i] = segmentsFromString(segmentsString);
+
+            inputString += charsRead + 1;
+        }
+    }
+
+    assert(n > 0);
+    return n;
+}
+
 static int countSegments(int segments) {
     int c = 0;
 
@@ -39,61 +76,6 @@ static int countSegments(int segments) {
     }
 
     return c;
-}
-
-static int parseInput(const char *filename, Entry entries[ENTRY_CAP]) {
-    char input[32 * 1024];
-    readInput(filename, input, sizeof(input));
-
-    char *inputPtr = input;
-    char *inputEndPtr = inputPtr + strlen(input);
-    int charsRead = 0;
-    int n = 0;
-    char segmentsString[8] = {0};
-
-    for (; inputPtr < inputEndPtr; ++n) {
-        for (int i = 0; i < 10; ++i) {
-            int filled = sscanf(inputPtr, "%8[^ ]%n", segmentsString, &charsRead);
-            assert(filled == 1);
-
-            entries[n].signals[i] = segmentsFromString(segmentsString);
-
-            inputPtr += charsRead + 1;
-        }
-
-        sscanf(inputPtr, "| %n", &charsRead);
-        inputPtr += charsRead;
-
-        for (int i = 0; i < 4; ++i) {
-            int filled = sscanf(inputPtr, "%8[^ \n]%n", segmentsString, &charsRead);
-            assert(filled == 1);
-
-            entries[n].outputs[i] = segmentsFromString(segmentsString);
-
-            inputPtr += charsRead + 1;
-        }
-    }
-
-    return n;
-}
-
-static int partOne(int n, const Entry entries[n]) {
-    int count = 0;
-
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            switch (countSegments(entries[i].outputs[j])) {
-            case 2: // 1
-            case 3: // 7
-            case 4: // 4
-            case 7: // 8
-                ++count;
-                break;
-            }
-        }
-    }
-
-    return count;
 }
 
 static int valueFromOutputs(const int decodedDigits[10], const int outputs[4]) {
@@ -111,7 +93,26 @@ static int valueFromOutputs(const int decodedDigits[10], const int outputs[4]) {
     return value;
 }
 
-static int partTwo(int n, const Entry entries[n]) {
+static Result solvePartOne(int n, const Entry entries[n]) {
+    int count = 0;
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            switch (countSegments(entries[i].outputs[j])) {
+            case 2: // 1
+            case 3: // 7
+            case 4: // 4
+            case 7: // 8
+                ++count;
+                break;
+            }
+        }
+    }
+
+    return (Result){count, 26, 519};
+}
+
+static Result solvePartTwo(int n, const Entry entries[n]) {
     int sum = 0;
 
     for (int i = 0; i < n; ++i) {
@@ -163,22 +164,5 @@ static int partTwo(int n, const Entry entries[n]) {
         sum += valueFromOutputs(decodedDigits, entries[i].outputs);
     }
 
-    return sum;
-}
-
-int main() {
-    Entry entries[ENTRY_CAP] = {0};
-
-    int n = parseInput("./Day08.txt", entries);
-    assert(n > 0);
-
-    int partOneResult = partOne(n, entries);
-    printf("Part one: %d\n", partOneResult);
-    // assert(partOneResult == 26); // Example
-    assert(partOneResult == 519);
-
-    int partTwoResult = partTwo(n, entries);
-    printf("Part two: %d\n", partTwoResult);
-    // assert(partTwoResult == 61229); // Example
-    assert(partTwoResult == 1027483);
+    return (Result){sum, 61229, 1027483};
 }

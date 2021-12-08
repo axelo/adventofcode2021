@@ -1,4 +1,7 @@
-#include "Helpers.c"
+#define DAY 04
+#define INPUT Input
+#define INPUT_CAP 1
+
 #include <stdbool.h>
 
 typedef struct {
@@ -24,29 +27,15 @@ typedef struct {
     int boardsCount;
 } Input;
 
-static void printBoard(const Board *board) {
-    for (int col = 0; col < 5; ++col) {
-        printf("%u %u %u %u %u\n",
-               (*board)[col][0].number,
-               (*board)[col][1].number,
-               (*board)[col][2].number,
-               (*board)[col][3].number,
-               (*board)[col][4].number);
-    }
-    printf("\n");
-}
+#include "Runner.c"
 
-static void parseInput(const char *filename, Input *input) {
-    char rawInput[32 * 1024] = {0};
-
-    readInput(filename, rawInput, sizeof(rawInput));
-
+static int parse(const char *inputString, Input input[INPUT_CAP]) {
     int charsRead = 0;
     int filled = 0;
 
     char numbersString[1024] = {0};
 
-    assert(sscanf(rawInput, "%1024s\n\n%n", numbersString, &charsRead) == 1);
+    assert(sscanf(inputString, "%1024s\n\n%n", numbersString, &charsRead) == 1);
     assert((size_t)charsRead < sizeof(numbersString));
 
     char *numbersStringPtr = numbersString;
@@ -57,7 +46,7 @@ static void parseInput(const char *filename, Input *input) {
 
     assert(input->numbersCount > 0);
 
-    char *rawInputBoards = rawInput + (numbersStringPtr - numbersString);
+    const char *rawInputBoards = inputString + (numbersStringPtr - numbersString);
 
     for (filled = 0; filled != EOF; ++input->boardsCount) {
         Board *board = &input->boards[input->boardsCount];
@@ -80,6 +69,8 @@ static void parseInput(const char *filename, Input *input) {
     }
 
     assert(input->boardsCount > 0);
+
+    return 1;
 }
 
 static void playBingo(Input *input, Bingo *bingo) {
@@ -148,32 +139,26 @@ static int sumUnmarked(const Board *board) {
     return sum;
 }
 
-static int partOne(const Bingo *bingo) {
-    return sumUnmarked(&bingo->firstWinningBoard) * bingo->firstWinningNumber;
-}
+static Result solvePartOne(int n, const Input input[n]) {
+    assert(n == 1);
 
-static int partTwo(const Bingo *bingo) {
-    return sumUnmarked(&bingo->lastWinningBoard) * bingo->lastWinningNumber;
-}
-
-int main() {
-    Input input = {0};
-    parseInput("./Day04.txt", &input);
+    Input inputCopy = {0};
+    memcpy(&inputCopy, input, sizeof(inputCopy));
 
     Bingo bingo = {0};
-    playBingo(&input, &bingo);
+    playBingo(&inputCopy, &bingo);
 
-    int partOneResult = partOne(&bingo);
-    // assert(partOneResult == 4512); // Example
-    assert(partOneResult == 21607);
-    printf("Part one: %d \n", partOneResult);
-    printBoard(&bingo.firstWinningBoard);
+    return (Result){sumUnmarked(&bingo.firstWinningBoard) * bingo.firstWinningNumber, 4512, 21607};
+}
 
-    int partTwoResult = partTwo(&bingo);
-    // assert(partTwoResult == 1924); // Example
-    assert(partTwoResult == 19012);
-    printf("Part two: %d \n", partTwoResult);
-    printBoard(&bingo.lastWinningBoard);
+static Result solvePartTwo(int n, const Input input[n]) {
+    assert(n == 1);
 
-    return 0;
+    Input inputCopy = {0};
+    memcpy(&inputCopy, input, sizeof(inputCopy));
+
+    Bingo bingo = {0};
+    playBingo(&inputCopy, &bingo);
+
+    return (Result){sumUnmarked(&bingo.lastWinningBoard) * bingo.lastWinningNumber, 1924, 19012};
 }
