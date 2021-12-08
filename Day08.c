@@ -145,18 +145,18 @@ static Result partTwo(int n, const Entry entries[n]) {
 
             if (activeSegments == 5) {
                 // 2, 3 or 5
-                if (countSegments(cAndF & signals) == 2) { // If c and f active then it's a 3
+                if (countSegments(cAndF & signals) == 2) { // If C and F active then it's a 3
                     decodedDigits[3] = signals;
-                } else if (countSegments(bAndD & signals) == 1) { // If b or d active then it's a 2
+                } else if (countSegments(bAndD & signals) == 1) { // If B or D active then it's a 2
                     decodedDigits[2] = signals;
                 } else { // Otherwise 5
                     decodedDigits[5] = signals;
                 }
             } else if (activeSegments == 6) {
                 // 0, 6 or 9
-                if (countSegments(cAndF & signals) == 1) { // If c or f active then it's a 6
+                if (countSegments(cAndF & signals) == 1) { // If C or F active then it's a 6
                     decodedDigits[6] = signals;
-                } else if (countSegments(bAndD & signals) == 2) { // If b and d active then it's a 9
+                } else if (countSegments(bAndD & signals) == 2) { // If B and D active then it's a 9
                     decodedDigits[9] = signals;
                 } else { // Otherwise 0
                     decodedDigits[0] = signals;
