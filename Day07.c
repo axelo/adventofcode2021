@@ -33,7 +33,7 @@ static int compareInt(const void *a, const void *b) {
                : -1;
 }
 
-static Result solvePartOne(int n, const int xs[n]) {
+static Result partOne(int n, const int xs[n]) {
     int sortedXs[n];
     memcpy(sortedXs, xs, n * sizeof(xs[0]));
 
@@ -64,7 +64,7 @@ static int partTwoFuelCost(int midpoint, int n, const int xs[n]) {
     return fuel;
 }
 
-static Result solvePartTwo(int n, const int xs[n]) {
+static Result partTwo(int n, const int xs[n]) {
     int xsSum = 0;
 
     for (int i = 0; i < n; ++i) { // O(n)

@@ -139,7 +139,7 @@ static int sumUnmarked(const Board *board) {
     return sum;
 }
 
-static Result solvePartOne(int n, const Input input[n]) {
+static Result partOne(int n, const Input input[n]) {
     assert(n == 1);
 
     Input inputCopy = {0};
@@ -151,7 +151,7 @@ static Result solvePartOne(int n, const Input input[n]) {
     return (Result){sumUnmarked(&bingo.firstWinningBoard) * bingo.firstWinningNumber, 4512, 21607};
 }
 
-static Result solvePartTwo(int n, const Input input[n]) {
+static Result partTwo(int n, const Input input[n]) {
     assert(n == 1);
 
     Input inputCopy = {0};

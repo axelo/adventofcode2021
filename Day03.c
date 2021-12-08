@@ -37,7 +37,7 @@ static int parse(const char *inputString, int diags[INPUT_CAP]) {
     return n;
 }
 
-static Result solvePartOne(int n, const int diags[n]) {
+static Result partOne(int n, const int diags[n]) {
     int bitSums[BIT_WIDTH] = {0};
 
     for (size_t i = 0; i < (size_t)n; ++i) {
@@ -100,7 +100,7 @@ static int partTwoRating(int n, const int diags[n], Rating rating) {
     return filtered[0];
 }
 
-static Result solvePartTwo(int n, const int diags[n]) {
+static Result partTwo(int n, const int diags[n]) {
     return (Result){
         partTwoRating(n, diags, OxygenGeneratorRating) * partTwoRating(n, diags, CO2ScrubberRating),
         230, 4550283};

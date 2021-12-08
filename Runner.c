@@ -30,8 +30,8 @@ typedef struct {
 } Result;
 
 static int parse(const char *inputString, INPUT input[INPUT_CAP]);
-static Result solvePartOne(int n, const INPUT input[n]);
-static Result solvePartTwo(int n, const INPUT input[n]);
+static Result partOne(int n, const INPUT input[n]);
+static Result partTwo(int n, const INPUT input[n]);
 
 static int64_t Runner_micros() {
     struct timespec now;
@@ -58,30 +58,30 @@ int main() {
 
     int64_t start = Runner_micros();
 
-    Result partOne = solvePartOne(n, input);
+    Result partOneResult = partOne(n, input);
 
     int64_t end = Runner_micros();
 
-    printf("Part one: %lld, took %lld us\n", partOne.actual, end - start);
+    printf("Part one: %lld, took %lld us\n", partOneResult.actual, end - start);
 
 #ifdef example
-    assert(partOne.actual == partOne.expectedExample);
+    assert(partOneResult.actual == partOneResult.expectedExample);
 #else
-    assert(partOne.actual == partOne.expected);
+    assert(partOneResult.actual == partOneResult.expected);
 #endif
 
     start = Runner_micros();
 
-    Result partTwo = solvePartTwo(n, input);
+    Result partTwoResult = partTwo(n, input);
 
     end = Runner_micros();
 
-    printf("Part two: %lld, took %lld us\n", partTwo.actual, end - start);
+    printf("Part two: %lld, took %lld us\n", partTwoResult.actual, end - start);
 
 #ifdef example
-    assert(partTwo.actual == partTwo.expectedExample);
+    assert(partTwoResult.actual == partTwoResult.expectedExample);
 #else
-    assert(partTwo.actual == partTwo.expected);
+    assert(partTwoResult.actual == partTwoResult.expected);
 #endif
 }
 

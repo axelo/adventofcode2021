@@ -93,7 +93,7 @@ static int valueFromOutputs(const int decodedDigits[10], const int outputs[4]) {
     return value;
 }
 
-static Result solvePartOne(int n, const Entry entries[n]) {
+static Result partOne(int n, const Entry entries[n]) {
     int count = 0;
 
     for (int i = 0; i < n; ++i) {
@@ -112,7 +112,7 @@ static Result solvePartOne(int n, const Entry entries[n]) {
     return (Result){count, 26, 519};
 }
 
-static Result solvePartTwo(int n, const Entry entries[n]) {
+static Result partTwo(int n, const Entry entries[n]) {
     int sum = 0;
 
     for (int i = 0; i < n; ++i) {

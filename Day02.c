@@ -44,7 +44,7 @@ static int parse(const char *inputString, Command commands[INPUT_CAP]) {
     return n;
 }
 
-static Result solvePartOne(int n, const Command commands[n]) {
+static Result partOne(int n, const Command commands[n]) {
     int horizontalPos = 0;
     int depth = 0;
 
@@ -67,7 +67,7 @@ static Result solvePartOne(int n, const Command commands[n]) {
     return (Result){horizontalPos * depth, 150, 1815044};
 }
 
-static Result solvePartTwo(int n, const Command commands[n]) {
+static Result partTwo(int n, const Command commands[n]) {
     int horizontalPos = 0;
     int depth = 0;
     int aim = 0;

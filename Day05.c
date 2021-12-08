@@ -98,7 +98,7 @@ static int countOverlaps(int h, int w, const int diagram[h][w]) {
     return overlaps;
 }
 
-static Result solvePartOne(int count, const Line lines[count]) {
+static Result partOne(int count, const Line lines[count]) {
     Line vhLines[count];
     memset(vhLines, 0, sizeof(Line) * count);
 
@@ -120,7 +120,7 @@ static Result solvePartOne(int count, const Line lines[count]) {
     return (Result){countOverlaps(size.h, size.w, diagram), 5, 7318};
 }
 
-static Result solvePartTwo(int count, const Line lines[count]) {
+static Result partTwo(int count, const Line lines[count]) {
     DiagramSize size = diagramSizeFromLines(count, lines);
 
     int diagram[size.h][size.w];

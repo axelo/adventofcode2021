@@ -46,12 +46,12 @@ static int64_t simulate(const int64_t initialFish[9], int days) {
     return sumFish(fish);
 }
 
-static Result solvePartOne(int n, const int64_t fish[n]) {
+static Result partOne(int n, const int64_t fish[n]) {
     assert(n == 9);
     return (Result){simulate(fish, 80), 5934, 391671};
 }
 
-static Result solvePartTwo(int n, const int64_t fish[n]) {
+static Result partTwo(int n, const int64_t fish[n]) {
     assert(n == 9);
     return (Result){simulate(fish, 256), 26984457539, 1754000560399};
 }

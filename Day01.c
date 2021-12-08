@@ -20,7 +20,7 @@ static int parse(const char *inputString, int depths[INPUT_CAP]) {
     return n;
 }
 
-static Result solvePartOne(int n, const int depths[n]) {
+static Result partOne(int n, const int depths[n]) {
     int count = 0;
     int previousDepth = 0;
 
@@ -37,7 +37,7 @@ static Result solvePartOne(int n, const int depths[n]) {
     return (Result){count, 7, 1139};
 }
 
-static Result solvePartTwo(int n, const int depths[n]) {
+static Result partTwo(int n, const int depths[n]) {
     int count = 0;
     int previousSum = 0;
 
