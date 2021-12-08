@@ -24,8 +24,8 @@ static int segmentFromChar(char c) {
 static int segmentsFromString(const char *s) {
     int segments = 0;
 
-    while (*s != 0) {
-        segments |= segmentFromChar(*s++);
+    for (; *s != 0; ++s) {
+        segments |= segmentFromChar(*s);
     }
 
     return segments;
@@ -34,9 +34,8 @@ static int segmentsFromString(const char *s) {
 static int countSegments(int segments) {
     int c = 0;
 
-    while (segments > 0) {
+    for (; segments > 0; segments >>= 1) {
         c += segments & 1;
-        segments >>= 1;
     }
 
     return c;
@@ -142,18 +141,18 @@ static int partTwo(int n, const Entry entries[n]) {
 
             if (activeSegments == 5) {
                 // 2, 3 or 5
-                if (countSegments(cOrF & signals) == 2) { // If c and f set then it's a 3
+                if (countSegments(cOrF & signals) == 2) { // If c and f active then it's a 3
                     decodedDigits[3] = signals;
-                } else if (countSegments(bOrD & signals) == 1) { // If b or d set then it's a 2
+                } else if (countSegments(bOrD & signals) == 1) { // If b or d active then it's a 2
                     decodedDigits[2] = signals;
                 } else { // Otherwise 5
                     decodedDigits[5] = signals;
                 }
             } else if (activeSegments == 6) {
                 // 0, 6 or 9
-                if (countSegments(cOrF & signals) == 1) { // If c or f set then it's a 6
+                if (countSegments(cOrF & signals) == 1) { // If c or f active then it's a 6
                     decodedDigits[6] = signals;
-                } else if (countSegments(bOrD & signals) == 2) { // If b and d set then it's a 9
+                } else if (countSegments(bOrD & signals) == 2) { // If b and d active then it's a 9
                     decodedDigits[9] = signals;
                 } else { // Otherwise 0
                     decodedDigits[0] = signals;
