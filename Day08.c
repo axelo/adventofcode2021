@@ -133,8 +133,11 @@ static Result partTwo(int n, const Entry entries[n]) {
             }
         }
 
-        int cOrF = decodedDigits[1];
-        int bOrD = decodedDigits[4] & (~decodedDigits[1]);
+        // We known the two active segments are C and F, but not exactly which one
+        int cAndF = decodedDigits[1];
+
+        // We known the two active segments are B and D, but not exactly which one
+        int bAndD = decodedDigits[4] & (~decodedDigits[1]);
 
         for (int j = 0; j < 10; ++j) {
             int signals = entries[i].signals[j];
@@ -142,18 +145,18 @@ static Result partTwo(int n, const Entry entries[n]) {
 
             if (activeSegments == 5) {
                 // 2, 3 or 5
-                if (countSegments(cOrF & signals) == 2) { // If c and f active then it's a 3
+                if (countSegments(cAndF & signals) == 2) { // If c and f active then it's a 3
                     decodedDigits[3] = signals;
-                } else if (countSegments(bOrD & signals) == 1) { // If b or d active then it's a 2
+                } else if (countSegments(bAndD & signals) == 1) { // If b or d active then it's a 2
                     decodedDigits[2] = signals;
                 } else { // Otherwise 5
                     decodedDigits[5] = signals;
                 }
             } else if (activeSegments == 6) {
                 // 0, 6 or 9
-                if (countSegments(cOrF & signals) == 1) { // If c or f active then it's a 6
+                if (countSegments(cAndF & signals) == 1) { // If c or f active then it's a 6
                     decodedDigits[6] = signals;
-                } else if (countSegments(bOrD & signals) == 2) { // If b and d active then it's a 9
+                } else if (countSegments(bAndD & signals) == 2) { // If b and d active then it's a 9
                     decodedDigits[9] = signals;
                 } else { // Otherwise 0
                     decodedDigits[0] = signals;

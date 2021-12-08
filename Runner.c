@@ -7,20 +7,28 @@
 #error DAY is not defined
 #endif
 
+#ifndef INPUT
+#error INPUT is not defined
+#endif
+
+#ifndef INPUT_CAP
+#error INPUT_CAP is not defined
+#endif
+
 #include <assert.h>
 #include <stdio.h>  // printf, file functions
 #include <string.h> // sscanf
 
 // Turn A into a string literal without expanding macro definitions.
-#define STRINGIZE_NON_EXPAND(A) #A
+#define RUNNER_STRINGIZE_NON_EXPAND(A) #A
 
 // Turn A into a string literal after macro-expanding it.
-#define STRINGIZE(A) STRINGIZE_NON_EXPAND(A)
+#define RUNNER_STRINGIZE(A) RUNNER_STRINGIZE_NON_EXPAND(A)
 
 #ifdef example
-#define INPUT_FILENAME "./Day" STRINGIZE(DAY) ".example.txt"
+#define RUNNER_INPUT_FILENAME "./Day" RUNNER_STRINGIZE(DAY) ".example.txt"
 #else
-#define INPUT_FILENAME "./Day" STRINGIZE(DAY) ".txt"
+#define RUNNER_INPUT_FILENAME "./Day" RUNNER_STRINGIZE(DAY) ".txt"
 #endif
 
 typedef struct {
@@ -30,7 +38,9 @@ typedef struct {
 } Result;
 
 static int parse(const char *inputString, INPUT input[INPUT_CAP]);
+
 static Result partOne(int n, const INPUT input[n]);
+
 static Result partTwo(int n, const INPUT input[n]);
 
 static int64_t Runner_micros() {
@@ -40,7 +50,7 @@ static int64_t Runner_micros() {
 }
 
 static void Runner_readInput(char *destination, size_t maxSize) {
-    FILE *file = fopen(INPUT_FILENAME, "r");
+    FILE *file = fopen(RUNNER_INPUT_FILENAME, "r");
 
     assert(file != NULL && "fopen: Couldn't open input file");
 
