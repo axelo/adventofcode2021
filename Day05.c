@@ -1,4 +1,6 @@
-#include "Helpers.c"
+#define DAY 05
+#define INPUT Line
+#define INPUT_CAP 4096
 
 typedef struct {
     int x;
@@ -12,17 +14,14 @@ typedef struct {
     int h;
 } DiagramSize;
 
-static int parseInput(const char *filename, int maxCount, Line lines[maxCount]) {
-    char input[32 * 1024] = {0};
+#include "Runner.c"
 
-    readInput(filename, input, sizeof(input));
-
-    char *inputPtr = input;
+static int parse(const char *inputString, Line lines[INPUT_CAP]) {
     int count = 0;
     int charsRead = 0;
     int filled = 0;
 
-    while ((filled = sscanf(inputPtr, "%d,%d -> %d,%d\n%n",
+    while ((filled = sscanf(inputString, "%d,%d -> %d,%d\n%n",
                             &lines[count][0].x,
                             &lines[count][0].y,
                             &lines[count][1].x,
@@ -30,30 +29,14 @@ static int parseInput(const char *filename, int maxCount, Line lines[maxCount]) 
                             &charsRead)) != EOF) {
         assert(filled == 4 && "parseInput: Failed to parse input");
 
-        inputPtr += charsRead;
+        inputString += charsRead;
 
         ++count;
 
-        assert(count < maxCount);
+        assert(count < INPUT_CAP);
     }
 
     return count;
-}
-
-static void printDiagram(int h, int w, int diagram[h][w]) {
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            int a = diagram[y][x];
-
-            if (a) {
-                printf("%d", a);
-            } else {
-                printf(".");
-            }
-        }
-
-        printf("\n");
-    }
 }
 
 static DiagramSize diagramSizeFromLines(int count, const Line lines[count]) {
@@ -115,7 +98,7 @@ static int countOverlaps(int h, int w, const int diagram[h][w]) {
     return overlaps;
 }
 
-static int partOne(int count, const Line lines[count]) {
+static Result partOne(int count, const Line lines[count]) {
     Line vhLines[count];
     memset(vhLines, 0, sizeof(Line) * count);
 
@@ -134,12 +117,10 @@ static int partOne(int count, const Line lines[count]) {
 
     drawLines(countVH, vhLines, size.h, size.w, diagram);
 
-    printDiagram(size.h, size.w, diagram);
-
-    return countOverlaps(size.h, size.w, diagram);
+    return (Result){countOverlaps(size.h, size.w, diagram), 5, 7318};
 }
 
-static int partTwo(int count, const Line lines[count]) {
+static Result partTwo(int count, const Line lines[count]) {
     DiagramSize size = diagramSizeFromLines(count, lines);
 
     int diagram[size.h][size.w];
@@ -147,22 +128,5 @@ static int partTwo(int count, const Line lines[count]) {
 
     drawLines(count, lines, size.h, size.w, diagram);
 
-    printDiagram(size.h, size.w, diagram);
-
-    return countOverlaps(size.h, size.w, diagram);
-}
-
-int main() {
-    Line lines[4096] = {0};
-    int count = parseInput("./Day05.txt", sizeof(lines) / sizeof(lines[0]), lines);
-
-    int partOneResult = partOne(count, lines);
-    printf("Part one: %d\n", partOneResult);
-    // assert(partOneResult == 5); // Example
-    assert(partOneResult == 7318);
-
-    int partTwoResult = partTwo(count, lines);
-    printf("Part two: %d\n", partTwoResult);
-    // assert(partTwoResult == 12); // Example
-    assert(partTwoResult == 19939);
+    return (Result){countOverlaps(size.h, size.w, diagram), 12, 19939};
 }

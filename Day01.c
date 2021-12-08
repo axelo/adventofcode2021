@@ -1,31 +1,30 @@
-#include "Helpers.c"
+#define DAY 01
+#define INPUT int
+#define INPUT_CAP 4096
 
-static int parseInput(const char *filename, int *depths, size_t maxCount) {
-    char input[32 * 1024] = {0};
+#include "Runner.c"
 
-    readInput(filename, input, sizeof(input));
-
-    char *inputPtr = input;
-    size_t depthCount = 0;
+static int parse(const char *inputString, int depths[INPUT_CAP]) {
+    size_t n = 0;
     int charsRead = 0;
     int filled = 0;
 
-    while ((filled = sscanf(inputPtr, "%u\n%n", &depths[depthCount++], &charsRead)) != EOF) {
+    while ((filled = sscanf(inputString, "%u\n%n", &depths[n++], &charsRead)) != EOF) {
         assert(filled == 1 && "parseInput: Failed to parse input");
 
-        inputPtr += charsRead;
+        inputString += charsRead;
 
-        assert(depthCount < maxCount);
+        assert(n < INPUT_CAP);
     }
 
-    return depthCount;
+    return n;
 }
 
-static int partOne(const int *depths, size_t depthCount) {
+static Result partOne(int n, const int depths[n]) {
     int count = 0;
     int previousDepth = 0;
 
-    for (size_t i = 0; i < depthCount; ++i) {
+    for (int i = 0; i < n; ++i) {
         int depth = depths[i];
 
         if (previousDepth > 0 && previousDepth < depth) {
@@ -35,14 +34,14 @@ static int partOne(const int *depths, size_t depthCount) {
         previousDepth = depth;
     }
 
-    return count;
+    return (Result){count, 7, 1139};
 }
 
-static int partTwo(const int *depths, size_t depthCount) {
+static Result partTwo(int n, const int depths[n]) {
     int count = 0;
     int previousSum = 0;
 
-    for (size_t i = 0; i < (depthCount / 3) * 3; ++i) {
+    for (int i = 0; i < (n / 3) * 3; ++i) {
         int sum = depths[i] + depths[i + 1] + depths[i + 2];
 
         if (previousSum > 0 && previousSum < sum) {
@@ -52,18 +51,5 @@ static int partTwo(const int *depths, size_t depthCount) {
         previousSum = sum;
     }
 
-    return count;
-}
-
-int main() {
-    int depths[4096] = {0};
-    size_t depthCount = parseInput("./Day01.txt", depths, sizeof(depths) / sizeof(int));
-
-    int partOneResult = partOne(depths, depthCount);
-    assert(partOneResult == 1139);
-    printf("Part one: %d\n", partOneResult);
-
-    int partTwoResult = partTwo(depths, depthCount);
-    assert(partTwoResult == 1103);
-    printf("Part two: %d\n", partTwoResult);
+    return (Result){count, 5, 1103};
 }

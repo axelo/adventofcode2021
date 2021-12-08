@@ -1,23 +1,25 @@
-#include "Helpers.c"
+#define DAY 06
+#define INPUT int64_t
+#define INPUT_CAP 9
 
-static void parseInput(const char *filename, int64_t fish[9]) {
-    char input[32 * 1024];
-    readInput(filename, input, sizeof(input));
+#include "Runner.c"
 
-    char *inputPtr = input;
+static int parse(const char *inputString, int64_t fish[9]) {
     int charsRead = 0;
     int filled = 0;
     int timer = 0;
 
     memset(fish, 0, 9 * sizeof(fish[0]));
 
-    while ((filled = sscanf(inputPtr, "%d,%n", &timer, &charsRead)) != EOF) {
+    while ((filled = sscanf(inputString, "%d,%n", &timer, &charsRead)) != EOF) {
         assert(filled == 1);
         assert(timer >= 0 && timer <= 8);
 
         ++fish[timer];
-        inputPtr += charsRead;
+        inputString += charsRead;
     }
+
+    return 9;
 }
 
 static inline int64_t sumFish(int64_t f[9]) {
@@ -44,28 +46,12 @@ static int64_t simulate(const int64_t initialFish[9], int days) {
     return sumFish(fish);
 }
 
-static int64_t partOne(const int64_t f[9]) {
-    return simulate(f, 80);
+static Result partOne(int n, const int64_t fish[n]) {
+    assert(n == 9);
+    return (Result){simulate(fish, 80), 5934, 391671};
 }
 
-static int64_t partTwo(const int64_t f[9]) {
-    return simulate(f, 256);
-}
-
-int main() {
-    int64_t fish[9];
-    parseInput("./Day06.txt", fish);
-
-    int64_t partOneResult = partOne(fish);
-    printf("Part one: %llu\n", partOneResult);
-    // assert(partOneResult == 5934); // Example
-    assert(partOneResult == 391671);
-
-    (void)partTwo;
-    int64_t partTwoResult = partTwo(fish);
-    printf("Part two: %llu\n", partTwoResult);
-    // assert(partTwoResult == 26984457539); // Example
-    assert(partTwoResult == 1754000560399);
-
-    return 0;
+static Result partTwo(int n, const int64_t fish[n]) {
+    assert(n == 9);
+    return (Result){simulate(fish, 256), 26984457539, 1754000560399};
 }
