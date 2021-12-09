@@ -7,12 +7,16 @@
 #error DAY is not defined
 #endif
 
+#ifndef INPUT_CAP
+#error INPUT_CAP is not defined
+#endif
+
 #ifndef INPUT
 #error INPUT is not defined
 #endif
 
-#ifndef INPUT_CAP
-#error INPUT_CAP is not defined
+#ifndef N
+#define N int
 #endif
 
 #include <assert.h>
@@ -37,11 +41,11 @@ typedef struct {
     int64_t expected;
 } Result;
 
-static int parse(const char *inputString, INPUT input[INPUT_CAP]);
+static N parse(const char *inputString, INPUT);
 
-static Result partOne(int n, const INPUT input[n]);
+static Result partOne(N n, const INPUT);
 
-static Result partTwo(int n, const INPUT input[n]);
+static Result partTwo(N n, const INPUT);
 
 static int64_t Runner_micros() {
     struct timespec now;
@@ -63,8 +67,8 @@ int main() {
     char inputString[32 * 1024];
     Runner_readInput(inputString, sizeof(inputString));
 
-    INPUT input[INPUT_CAP] = {0};
-    int n = parse(inputString, input);
+    INPUT = {0};
+    N n = parse(inputString, input);
 
     int64_t start = Runner_micros();
 

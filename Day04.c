@@ -1,6 +1,6 @@
 #define DAY 04
-#define INPUT Input
 #define INPUT_CAP 1
+#define INPUT Input input[INPUT_CAP]
 
 #include <stdbool.h>
 

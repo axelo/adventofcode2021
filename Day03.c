@@ -1,6 +1,6 @@
 #define DAY 03
-#define INPUT int
 #define INPUT_CAP 4096
+#define INPUT int input[INPUT_CAP]
 
 #include <inttypes.h> // strtoimax
 #include <stdbool.h>  // bool

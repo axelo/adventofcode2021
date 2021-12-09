@@ -1,6 +1,6 @@
 #define DAY 02
-#define INPUT Command
 #define INPUT_CAP 4096
+#define INPUT Command input[INPUT_CAP]
 
 typedef enum {
     Idle = 0,

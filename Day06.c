@@ -1,6 +1,6 @@
 #define DAY 06
-#define INPUT int64_t
 #define INPUT_CAP 9
+#define INPUT int64_t input[INPUT_CAP]
 
 #include "Runner.c"
 
