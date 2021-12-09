@@ -5,7 +5,7 @@
 #define DAY 09
 #define INPUT_CAP 102
 #define INPUT uint8_t input[INPUT_CAP][INPUT_CAP]
-#define N Dim
+#define INPUT_N Dim
 
 #define LOW_POINTS_CAP 256
 
@@ -51,17 +51,16 @@ static Dim parse(const char *inputString, uint8_t heightmap[INPUT_CAP][INPUT_CAP
 static int findLowPoints(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP], Point points[LOW_POINTS_CAP]) {
     int n = 0;
 
-    for (int r = 0; r < dim.h; ++r) {
-        for (int c = 0; c < dim.w; ++c) {
-            int hAbove = r - 1 < 0 ? INT_MAX : heightmap[r - 1][c];
-            int hBelow = r + 1 >= dim.h ? INT_MAX : heightmap[r + 1][c];
-            int hLeft = c - 1 < 0 ? INT_MAX : heightmap[r][c - 1];
-            int hRight = c + 1 >= dim.w ? INT_MAX : heightmap[r][c + 1];
-            int h = heightmap[r][c];
+    for (int y = 0; y < dim.h; ++y) {
+        for (int x = 0; x < dim.w; ++x) {
+            int hAbove = y - 1 < 0 ? INT_MAX : heightmap[y - 1][x];
+            int hBelow = y + 1 >= dim.h ? INT_MAX : heightmap[y + 1][x];
+            int hLeft = x - 1 < 0 ? INT_MAX : heightmap[y][x - 1];
+            int hRight = x + 1 >= dim.w ? INT_MAX : heightmap[y][x + 1];
+            int h = heightmap[y][x];
 
             if (h < hAbove && h < hBelow && h < hLeft && h < hRight) {
-                points[n++] = (Point){.x = c, .y = r};
-
+                points[n++] = (Point){x, y};
                 assert(n < LOW_POINTS_CAP);
             }
         }
@@ -77,23 +76,18 @@ static Result partOne(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
     int sumRiskLevel = 0;
 
     for (int i = 0; i < nLowPoints; ++i) {
-        int h = heightmap[lowPoints[i].y][lowPoints[i].x];
-        sumRiskLevel += h + 1;
+        sumRiskLevel += heightmap[lowPoints[i].y][lowPoints[i].x] + 1;
     }
 
     return (Result){sumRiskLevel, 15, 550};
 }
 
 static int fillBasin(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP], bool filled[INPUT_CAP][INPUT_CAP], int x, int y) {
-    if (x < 0 || y < 0 || x >= dim.w || y >= dim.h || filled[y][x]) {
+    if (x < 0 || y < 0 || x >= dim.w || y >= dim.h || filled[y][x] || heightmap[y][x] == 9) {
         return 0;
     }
 
     filled[y][x] = true;
-
-    if (heightmap[y][x] == 9) {
-        return 0;
-    }
 
     return 1 +
            fillBasin(dim, heightmap, filled, x - 1, y) +
@@ -126,6 +120,5 @@ static Result partTwo(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
         }
     }
 
-    return (Result){basinSizeL * basinSizeXL * basinSizeXXL,
-                    1134, 1100682};
+    return (Result){basinSizeL * basinSizeXL * basinSizeXXL, 1134, 1100682};
 }

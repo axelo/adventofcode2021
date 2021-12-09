@@ -15,8 +15,8 @@
 #error INPUT is not defined
 #endif
 
-#ifndef N
-#define N int
+#ifndef INPUT_N
+#define INPUT_N int
 #endif
 
 #include <assert.h>
@@ -41,11 +41,11 @@ typedef struct {
     int64_t expected;
 } Result;
 
-static N parse(const char *inputString, INPUT);
+static INPUT_N parse(const char *inputString, INPUT);
 
-static Result partOne(N n, const INPUT);
+static Result partOne(INPUT_N n, const INPUT);
 
-static Result partTwo(N n, const INPUT);
+static Result partTwo(INPUT_N n, const INPUT);
 
 static int64_t Runner_micros() {
     struct timespec now;
@@ -68,7 +68,7 @@ int main() {
     Runner_readInput(inputString, sizeof(inputString));
 
     INPUT = {0};
-    N n = parse(inputString, input);
+    INPUT_N n = parse(inputString, input);
 
     int64_t start = Runner_micros();
 
