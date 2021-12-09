@@ -1,6 +1,6 @@
 #define DAY 08
-#define INPUT Entry
 #define INPUT_CAP 200
+#define INPUT Entry input[INPUT_CAP]
 
 typedef struct {
     int signals[10];

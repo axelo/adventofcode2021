@@ -1,5 +1,5 @@
 #define DAY 05
-#define INPUT Line
+#define INPUT Line input[INPUT_CAP]
 #define INPUT_CAP 4096
 
 typedef struct {
