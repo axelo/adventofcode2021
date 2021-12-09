@@ -53,11 +53,11 @@ static int findLowPoints(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP],
 
     for (int y = 0; y < dim.h; ++y) {
         for (int x = 0; x < dim.w; ++x) {
-            int hAbove = y - 1 < 0 ? INT_MAX : heightmap[y - 1][x];
-            int hBelow = y + 1 >= dim.h ? INT_MAX : heightmap[y + 1][x];
-            int hLeft = x - 1 < 0 ? INT_MAX : heightmap[y][x - 1];
-            int hRight = x + 1 >= dim.w ? INT_MAX : heightmap[y][x + 1];
-            int h = heightmap[y][x];
+            uint8_t hAbove = y - 1 < 0 ? UINT8_MAX : heightmap[y - 1][x];
+            uint8_t hBelow = y + 1 >= dim.h ? UINT8_MAX : heightmap[y + 1][x];
+            uint8_t hLeft = x - 1 < 0 ? UINT8_MAX : heightmap[y][x - 1];
+            uint8_t hRight = x + 1 >= dim.w ? UINT8_MAX : heightmap[y][x + 1];
+            uint8_t h = heightmap[y][x];
 
             if (h < hAbove && h < hBelow && h < hLeft && h < hRight) {
                 points[n++] = (Point){x, y};
