@@ -87,6 +87,12 @@ static void validateSyntax(const char *line, SyntaxResult *result) {
     }
 }
 
+static int compareUInt64(const void *a, const void *b) {
+    return (*(const uint64_t *)a > *(const uint64_t *)b)
+               ? 1
+               : -1;
+}
+
 static Result partOne(int n, const char lines[n][SYNTAX_CAP]) {
     SyntaxResult result = {0};
     int score = 0;
@@ -100,12 +106,6 @@ static Result partOne(int n, const char lines[n][SYNTAX_CAP]) {
     }
 
     return (Result){score, 26397, 364389};
-}
-
-static int compareUInt64(const void *a, const void *b) {
-    return (*(const uint64_t *)a > *(const uint64_t *)b)
-               ? 1
-               : -1;
 }
 
 static Result partTwo(int n, const char lines[n][SYNTAX_CAP]) {
