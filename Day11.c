@@ -32,7 +32,7 @@ static int simulate(int octopuses[SIZE][SIZE]) {
         }
     }
 
-    // Then, flash any octopus once with energy level 10 (we only want to flash once)
+    // Then, flash any octopus once with energy level 10 (we only want to flash once).
     bool flashedDueToPropagation;
 
     do {
