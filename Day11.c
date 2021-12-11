@@ -7,11 +7,6 @@
 
 #include "Runner.c"
 
-typedef struct {
-    int x;
-    int y;
-} Point;
-
 static int parse(const char *inputString, int octopuses[SIZE][SIZE]) {
     int charsRead;
 
@@ -46,7 +41,7 @@ static int simulate(int octopuses[SIZE][SIZE]) {
         for (int y = 0; y < SIZE; ++y) {
             for (int x = 0; x < SIZE; ++x) {
                 if (octopuses[y][x] == 10) {
-                    ++octopuses[y][x]; // Mark as flashed once.
+                    ++octopuses[y][x]; // Mark as already flashed.
 
                     // Propagate flash energy to adjacent points.
                     for (int y2 = y - 1; y2 <= y + 1; ++y2) {
@@ -64,7 +59,7 @@ static int simulate(int octopuses[SIZE][SIZE]) {
         }
     } while (flashedDueToPropagation);
 
-    // Finally, any octopus that flashed during this step has its energy level set to 0
+    // Finally, any octopus that flashed, reset energy level to 0.
     int nFlashes = 0;
 
     for (int y = 0; y < SIZE; ++y) {
