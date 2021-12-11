@@ -26,7 +26,7 @@ else
 
 
     if [ "${2-}" == "example" ]; then
-        DEFINES="-Dexample"
+        DEFINES="-DEXAMPLE"
     fi
 
     # -fsanitize=address

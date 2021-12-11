@@ -1,26 +1,21 @@
-#define DAY 07
-#define INPUT_CAP 4096
-#define INPUT int input[INPUT_CAP]
+#include "Helpers.c"
 
-#include <math.h>   // ceil, floor
-#include <stdlib.h> // abs, qsort
+#define CAP 4096
 
-#include "Runner.c"
-
-static int parse(const char *inputString, int xs[INPUT_CAP]) {
+static int parse(const char *input, int xs[CAP]) {
     int charsRead = 0;
     int filled = 0;
 
     int x = 0;
     int n = 0;
 
-    while ((filled = sscanf(inputString, "%d,%n", &x, &charsRead)) != EOF) {
+    while ((filled = sscanf(input, "%d,%n", &x, &charsRead)) != EOF) {
         assert(filled == 1);
 
         xs[n++] = x;
-        assert(n < INPUT_CAP);
+        assert(n < CAP);
 
-        inputString += charsRead;
+        input += charsRead;
     }
 
     assert(n > 0);
@@ -33,7 +28,7 @@ static int compareInt(const void *a, const void *b) {
                : -1;
 }
 
-static Result partOne(int n, const int xs[n]) {
+static int partOne(int n, const int xs[n]) {
     int sortedXs[n];
     memcpy(sortedXs, xs, n * sizeof(xs[0]));
 
@@ -49,7 +44,7 @@ static Result partOne(int n, const int xs[n]) {
         fuel += abs(midpoint - sortedXs[j]);
     }
 
-    return (Result){fuel, 37, 340056};
+    return fuel;
 }
 
 static int partTwoFuelCost(int midpoint, int n, const int xs[n]) {
@@ -64,7 +59,7 @@ static int partTwoFuelCost(int midpoint, int n, const int xs[n]) {
     return fuel;
 }
 
-static Result partTwo(int n, const int xs[n]) {
+static int partTwo(int n, const int xs[n]) {
     int xsSum = 0;
 
     for (int i = 0; i < n; ++i) { // O(n)
@@ -81,5 +76,22 @@ static Result partTwo(int n, const int xs[n]) {
 
     int fuel = fuel1 < fuel2 ? fuel1 : fuel2;
 
-    return (Result){fuel, 168, 96592275};
+    return fuel;
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    int xs[CAP] = {0};
+    int n = parse(input, xs);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, xs),
+                   37, 340056);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, xs),
+                   168, 96592275);
+
+    return 0;
 }

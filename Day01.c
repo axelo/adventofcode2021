@@ -1,26 +1,24 @@
-#define DAY 01
-#define INPUT_CAP 4096
-#define INPUT int input[INPUT_CAP]
+#include "Helpers.c"
 
-#include "Runner.c"
+#define CAP 4096
 
-static int parse(const char *inputString, int depths[INPUT_CAP]) {
+static int parse(const char *input, int depths[CAP]) {
     size_t n = 0;
     int charsRead = 0;
     int filled = 0;
 
-    while ((filled = sscanf(inputString, "%u\n%n", &depths[n++], &charsRead)) != EOF) {
+    while ((filled = sscanf(input, "%u\n%n", &depths[n++], &charsRead)) != EOF) {
         assert(filled == 1 && "parseInput: Failed to parse input");
 
-        inputString += charsRead;
+        input += charsRead;
 
-        assert(n < INPUT_CAP);
+        assert(n < CAP);
     }
 
     return n;
 }
 
-static Result partOne(int n, const int depths[n]) {
+static int partOne(int n, const int depths[n]) {
     int count = 0;
     int previousDepth = 0;
 
@@ -34,10 +32,10 @@ static Result partOne(int n, const int depths[n]) {
         previousDepth = depth;
     }
 
-    return (Result){count, 7, 1139};
+    return count;
 }
 
-static Result partTwo(int n, const int depths[n]) {
+static int partTwo(int n, const int depths[n]) {
     int count = 0;
     int previousSum = 0;
 
@@ -51,5 +49,22 @@ static Result partTwo(int n, const int depths[n]) {
         previousSum = sum;
     }
 
-    return (Result){count, 5, 1103};
+    return count;
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    int depths[CAP] = {0};
+    int n = parse(input, depths);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, depths),
+                   7, 1139);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, depths),
+                   5, 1103);
+
+    return 0;
 }

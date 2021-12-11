@@ -1,12 +1,7 @@
-#include <stdbool.h> // bool
-#include <stdlib.h>  // qsort
+#include "Helpers.c"
 
-#define DAY 10
-#define INPUT char input[INPUT_CAP][SYNTAX_CAP]
-#define INPUT_CAP 100
+#define CAP 100
 #define SYNTAX_CAP 200
-
-#include "Runner.c"
 
 typedef struct {
     int position;
@@ -14,14 +9,14 @@ typedef struct {
     int nOpen;
 } SyntaxResult;
 
-static int parse(const char *inputString, char lines[INPUT_CAP][SYNTAX_CAP]) {
+static int parse(const char *input, char lines[CAP][SYNTAX_CAP]) {
     int charsRead;
     int n = 0;
 
-    while (sscanf(inputString, "%s\n%n", lines[n], &charsRead) != EOF) {
+    while (sscanf(input, "%s\n%n", lines[n], &charsRead) != EOF) {
         n++;
-        assert(n < INPUT_CAP);
-        inputString += charsRead;
+        assert(n < CAP);
+        input += charsRead;
     }
 
     return n;
@@ -87,15 +82,16 @@ static void validateSyntax(const char *line, SyntaxResult *result) {
     }
 }
 
-static int compareUInt64(const void *a, const void *b) {
-    return (*(const uint64_t *)a > *(const uint64_t *)b)
+static int compareInt64(const void *a, const void *b) {
+    return (*(const int64_t *)a > *(const int64_t *)b)
                ? 1
                : -1;
 }
 
-static Result partOne(int n, const char lines[n][SYNTAX_CAP]) {
-    SyntaxResult result = {0};
+static int partOne(int n, const char lines[n][SYNTAX_CAP]) {
     int score = 0;
+
+    SyntaxResult result = {0};
 
     for (int i = 0; i < n; ++i) {
         validateSyntax(lines[i], &result);
@@ -105,19 +101,20 @@ static Result partOne(int n, const char lines[n][SYNTAX_CAP]) {
         }
     }
 
-    return (Result){score, 26397, 364389};
+    return score;
 }
 
-static Result partTwo(int n, const char lines[n][SYNTAX_CAP]) {
-    SyntaxResult result = {0};
-    uint64_t scores[n];
+static int64_t partTwo(int n, const char lines[n][SYNTAX_CAP]) {
+    int64_t scores[n];
     int nScores = 0;
+
+    SyntaxResult result = {0};
 
     for (int i = 0; i < n; ++i) {
         validateSyntax(lines[i], &result);
 
         if (result.nOpen > 0 && result.position == 0) {
-            uint64_t score = 0;
+            int64_t score = 0;
 
             for (int j = result.nOpen - 1; j >= 0; --j) {
                 score = (5 * score) + scoreFromMissingClosingChar(result.open[j]);
@@ -127,7 +124,24 @@ static Result partTwo(int n, const char lines[n][SYNTAX_CAP]) {
         }
     }
 
-    qsort(scores, nScores, sizeof(scores[0]), compareUInt64); // O(n * log n)
+    qsort(scores, nScores, sizeof(scores[0]), compareInt64); // O(n * log n)
 
-    return (Result){scores[nScores / 2], 288957, 2870201088};
+    return scores[nScores / 2];
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    char lines[CAP][SYNTAX_CAP] = {0};
+    int n = parse(input, lines);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, lines),
+                   26397, 364389);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, lines),
+                   288957, 2870201088);
+
+    return 0;
 }

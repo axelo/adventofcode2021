@@ -1,8 +1,4 @@
-#define DAY 04
-#define INPUT_CAP 1
-#define INPUT Input input[INPUT_CAP]
-
-#include <stdbool.h>
+#include "Helpers.c"
 
 typedef struct {
     int number;
@@ -27,9 +23,7 @@ typedef struct {
     int boardsCount;
 } Input;
 
-#include "Runner.c"
-
-static int parse(const char *inputString, Input input[INPUT_CAP]) {
+static void parse(const char *inputString, Input *input) {
     int charsRead = 0;
     int filled = 0;
 
@@ -69,8 +63,6 @@ static int parse(const char *inputString, Input input[INPUT_CAP]) {
     }
 
     assert(input->boardsCount > 0);
-
-    return 1;
 }
 
 static void playBingo(Input *input, Bingo *bingo) {
@@ -139,26 +131,39 @@ static int sumUnmarked(const Board *board) {
     return sum;
 }
 
-static Result partOne(int n, const Input input[n]) {
-    assert(n == 1);
-
+static int partOne(const Input *input) {
     Input inputCopy = {0};
     memcpy(&inputCopy, input, sizeof(inputCopy));
 
     Bingo bingo = {0};
     playBingo(&inputCopy, &bingo);
 
-    return (Result){sumUnmarked(&bingo.firstWinningBoard) * bingo.firstWinningNumber, 4512, 21607};
+    return sumUnmarked(&bingo.firstWinningBoard) * bingo.firstWinningNumber;
 }
 
-static Result partTwo(int n, const Input input[n]) {
-    assert(n == 1);
-
+static int partTwo(const Input *input) {
     Input inputCopy = {0};
     memcpy(&inputCopy, input, sizeof(inputCopy));
 
     Bingo bingo = {0};
     playBingo(&inputCopy, &bingo);
 
-    return (Result){sumUnmarked(&bingo.lastWinningBoard) * bingo.lastWinningNumber, 1924, 19012};
+    return sumUnmarked(&bingo.lastWinningBoard) * bingo.lastWinningNumber;
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    Input inputBoards = {0};
+    parse(input, &inputBoards);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(&inputBoards),
+                   4512, 21607);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(&inputBoards),
+                   1924, 19012);
+
+    return 0;
 }

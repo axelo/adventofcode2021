@@ -1,13 +1,11 @@
-#define DAY 08
-#define INPUT_CAP 200
-#define INPUT Entry input[INPUT_CAP]
+#include "Helpers.c"
+
+#define CAP 200
 
 typedef struct {
     int signals[10];
     int outputs[4];
 } Entry;
-
-#include "Runner.c"
 
 static int segmentFromChar(char c) {
     switch (c) {
@@ -33,34 +31,34 @@ static int segmentsFromString(const char *s) {
     return segments;
 }
 
-static int parse(const char *inputString, Entry entries[INPUT_CAP]) {
-    const char *inputStringEnd = inputString + strlen(inputString);
+static int parse(const char *input, Entry entries[CAP]) {
+    const char *inputStringEnd = input + strlen(input);
     int charsRead = 0;
     int n = 0;
     char segmentsString[8] = {0};
 
-    for (; inputString < inputStringEnd; ++n) {
+    for (; input < inputStringEnd; ++n) {
         for (int i = 0; i < 10; ++i) {
-            int filled = sscanf(inputString, "%8[^ ]%n", segmentsString, &charsRead);
+            int filled = sscanf(input, "%8[^ ]%n", segmentsString, &charsRead);
             assert(filled == 1);
 
             entries[n].signals[i] = segmentsFromString(segmentsString);
 
-            inputString += charsRead + 1;
+            input += charsRead + 1;
 
-            assert(n < INPUT_CAP);
+            assert(n < CAP);
         }
 
-        sscanf(inputString, "| %n", &charsRead);
-        inputString += charsRead;
+        sscanf(input, "| %n", &charsRead);
+        input += charsRead;
 
         for (int i = 0; i < 4; ++i) {
-            int filled = sscanf(inputString, "%8[^ \n]%n", segmentsString, &charsRead);
+            int filled = sscanf(input, "%8[^ \n]%n", segmentsString, &charsRead);
             assert(filled == 1);
 
             entries[n].outputs[i] = segmentsFromString(segmentsString);
 
-            inputString += charsRead + 1;
+            input += charsRead + 1;
         }
     }
 
@@ -93,7 +91,7 @@ static int valueFromOutputs(const int decodedDigits[10], const int outputs[4]) {
     return value;
 }
 
-static Result partOne(int n, const Entry entries[n]) {
+static int partOne(int n, const Entry entries[n]) {
     int count = 0;
 
     for (int i = 0; i < n; ++i) {
@@ -109,10 +107,10 @@ static Result partOne(int n, const Entry entries[n]) {
         }
     }
 
-    return (Result){count, 26, 519};
+    return count;
 }
 
-static Result partTwo(int n, const Entry entries[n]) {
+static int partTwo(int n, const Entry entries[n]) {
     int sum = 0;
 
     for (int i = 0; i < n; ++i) {
@@ -167,5 +165,22 @@ static Result partTwo(int n, const Entry entries[n]) {
         sum += valueFromOutputs(decodedDigits, entries[i].outputs);
     }
 
-    return (Result){sum, 61229, 1027483};
+    return sum;
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    Entry entries[CAP] = {0};
+    int n = parse(input, entries);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, entries),
+                   26, 519);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, entries),
+                   61229, 1027483);
+
+    return 0;
 }

@@ -1,12 +1,6 @@
-#include <limits.h>  // INT_MAX
-#include <stdbool.h> // bool
-#include <stdint.h>  // uint8_t
+#include "Helpers.c"
 
-#define DAY 09
-#define INPUT_CAP 102
-#define INPUT uint8_t input[INPUT_CAP][INPUT_CAP]
-#define INPUT_N Dim
-
+#define CAP 102
 #define LOW_POINTS_CAP 256
 
 typedef struct {
@@ -19,24 +13,22 @@ typedef struct {
     int y;
 } Point;
 
-#include "Runner.c"
-
-static Dim parse(const char *inputString, uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
+static Dim parse(const char *input, uint8_t heightmap[CAP][CAP]) {
     Dim dim = {0};
 
-    for (; *inputString != 0; ++inputString) {
+    for (; *input != 0; ++input) {
         int x = 0;
 
-        for (char c = *inputString; c != 0 && c != '\n'; c = *++inputString) {
+        for (char c = *input; c != 0 && c != '\n'; c = *++input) {
             int height = c - 48;
             assert(height >= 0 && height <= 9);
 
             heightmap[dim.h][x++] = height;
-            assert(x < INPUT_CAP);
+            assert(x < CAP);
         }
 
         ++dim.h;
-        assert(dim.h < INPUT_CAP);
+        assert(dim.h < CAP);
 
         if (dim.w == 0) {
             dim.w = x;
@@ -48,7 +40,7 @@ static Dim parse(const char *inputString, uint8_t heightmap[INPUT_CAP][INPUT_CAP
     return dim;
 }
 
-static int findLowPoints(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP], Point points[LOW_POINTS_CAP]) {
+static int findLowPoints(Dim dim, const uint8_t heightmap[CAP][CAP], Point points[LOW_POINTS_CAP]) {
     int n = 0;
 
     for (int y = 0; y < dim.h; ++y) {
@@ -69,7 +61,7 @@ static int findLowPoints(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP],
     return n;
 }
 
-static Result partOne(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
+static int partOne(Dim dim, const uint8_t heightmap[CAP][CAP]) {
     Point lowPoints[LOW_POINTS_CAP] = {0};
     int nLowPoints = findLowPoints(dim, heightmap, lowPoints);
 
@@ -79,10 +71,10 @@ static Result partOne(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
         sumRiskLevel += heightmap[lowPoints[i].y][lowPoints[i].x] + 1;
     }
 
-    return (Result){sumRiskLevel, 15, 550};
+    return sumRiskLevel;
 }
 
-static int fillBasin(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP], bool filled[INPUT_CAP][INPUT_CAP], int x, int y) {
+static int fillBasin(Dim dim, const uint8_t heightmap[CAP][CAP], bool filled[CAP][CAP], int x, int y) {
     if (x < 0 || y < 0 || x >= dim.w || y >= dim.h || filled[y][x] || heightmap[y][x] == 9) {
         return 0;
     }
@@ -96,11 +88,11 @@ static int fillBasin(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP], boo
            fillBasin(dim, heightmap, filled, x, y + 1);
 }
 
-static Result partTwo(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
+static int partTwo(Dim dim, const uint8_t heightmap[CAP][CAP]) {
     Point lowPoints[LOW_POINTS_CAP] = {0};
     int nLowPoints = findLowPoints(dim, heightmap, lowPoints);
 
-    bool filled[INPUT_CAP][INPUT_CAP] = {0};
+    bool filled[CAP][CAP] = {0};
     int basinSizeL = 0;
     int basinSizeXL = 0;
     int basinSizeXXL = 0;
@@ -120,5 +112,22 @@ static Result partTwo(Dim dim, const uint8_t heightmap[INPUT_CAP][INPUT_CAP]) {
         }
     }
 
-    return (Result){basinSizeL * basinSizeXL * basinSizeXXL, 1134, 1100682};
+    return basinSizeL * basinSizeXL * basinSizeXXL;
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    uint8_t heightmap[CAP][CAP] = {0};
+    Dim dim = parse(input, heightmap);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(dim, heightmap),
+                   15, 550);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(dim, heightmap),
+                   1134, 1100682);
+
+    return 0;
 }

@@ -1,11 +1,8 @@
-#define DAY 03
-#define INPUT_CAP 4096
-#define INPUT int input[INPUT_CAP]
+#include "Helpers.c"
 
-#include <inttypes.h> // strtoimax
-#include <stdbool.h>  // bool
+#define CAP 4096
 
-#ifdef example
+#ifdef EXAMPLE
 #define BIT_WIDTH 5
 #else
 #define BIT_WIDTH 12
@@ -16,28 +13,26 @@ typedef enum {
     CO2ScrubberRating
 } Rating;
 
-#include "Runner.c"
-
-static int parse(const char *inputString, int diags[INPUT_CAP]) {
+static int parse(const char *input, int diags[CAP]) {
     int n = 0;
     int charsRead = 0;
     int filled = 0;
     char diagString[32];
 
-    while ((filled = sscanf(inputString, "%12s\n%n", diagString, &charsRead)) != EOF) {
+    while ((filled = sscanf(input, "%12s\n%n", diagString, &charsRead)) != EOF) {
         assert(filled == 1 && "parseInput: Failed to parse input");
 
-        inputString += charsRead;
+        input += charsRead;
 
         diags[n++] = strtoimax(diagString, NULL, 2);
 
-        assert(n < INPUT_CAP);
+        assert(n < CAP);
     }
 
     return n;
 }
 
-static Result partOne(int n, const int diags[n]) {
+static int partOne(int n, const int diags[n]) {
     int bitSums[BIT_WIDTH] = {0};
 
     for (size_t i = 0; i < (size_t)n; ++i) {
@@ -56,7 +51,7 @@ static Result partOne(int n, const int diags[n]) {
 
     int epsilonRate = ~gammaRate & ((1 << BIT_WIDTH) - 1);
 
-    return (Result){gammaRate * epsilonRate, 198, 3633500};
+    return gammaRate * epsilonRate;
 }
 
 static int partTwoRating(int n, const int diags[n], Rating rating) {
@@ -100,8 +95,23 @@ static int partTwoRating(int n, const int diags[n], Rating rating) {
     return filtered[0];
 }
 
-static Result partTwo(int n, const int diags[n]) {
-    return (Result){
-        partTwoRating(n, diags, OxygenGeneratorRating) * partTwoRating(n, diags, CO2ScrubberRating),
-        230, 4550283};
+static int partTwo(int n, const int diags[n]) {
+    return partTwoRating(n, diags, OxygenGeneratorRating) * partTwoRating(n, diags, CO2ScrubberRating);
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    int diags[CAP] = {0};
+    int n = parse(input, diags);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, diags),
+                   198, 3633500);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, diags),
+                   230, 4550283);
+
+    return 0;
 }
