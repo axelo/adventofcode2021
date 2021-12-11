@@ -18,7 +18,7 @@ else
     WARNINGS="-Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum -Wshadow"
 
     DISABLED_WARNINGS="-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function"
-    #DISABLED_WARNINGS=""
+    DISABLED_WARNINGS=""
 
     OPTIMIZATION_LEVEL="-O0"
 

@@ -1,57 +1,62 @@
-#define DAY 06
-#define INPUT_CAP 9
-#define INPUT int64_t input[INPUT_CAP]
+#include "Helpers.c"
 
-#include "Runner.c"
-
-static int parse(const char *inputString, int64_t fish[9]) {
+static void parse(const char *input, int64_t fish[9]) {
     int charsRead = 0;
     int filled = 0;
     int timer = 0;
 
     memset(fish, 0, 9 * sizeof(fish[0]));
 
-    while ((filled = sscanf(inputString, "%d,%n", &timer, &charsRead)) != EOF) {
+    while ((filled = sscanf(input, "%d,%n", &timer, &charsRead)) != EOF) {
         assert(filled == 1);
         assert(timer >= 0 && timer <= 8);
 
         ++fish[timer];
-        inputString += charsRead;
+        input += charsRead;
     }
-
-    return 9;
-}
-
-static inline int64_t sumFish(int64_t f[9]) {
-    return f[0] + f[1] + f[2] + f[3] + f[4] + f[5] + f[6] + f[7] + f[8];
 }
 
 static int64_t simulate(const int64_t initialFish[9], int days) {
-    int64_t fish[9] = {0};
-    memcpy(fish, initialFish, sizeof(fish));
+    int64_t f[9] = {0};
+    memcpy(f, initialFish, sizeof(f));
 
     for (int day = 0; day < days; ++day) {
-        int64_t zero = fish[0];
-        fish[0] = fish[1];
-        fish[1] = fish[2];
-        fish[2] = fish[3];
-        fish[3] = fish[4];
-        fish[4] = fish[5];
-        fish[5] = fish[6];
-        fish[6] = fish[7] + zero;
-        fish[7] = fish[8];
-        fish[8] = zero;
+        int64_t zero = f[0];
+        f[0] = f[1];
+        f[1] = f[2];
+        f[2] = f[3];
+        f[3] = f[4];
+        f[4] = f[5];
+        f[5] = f[6];
+        f[6] = f[7] + zero;
+        f[7] = f[8];
+        f[8] = zero;
     }
 
-    return sumFish(fish);
+    return f[0] + f[1] + f[2] + f[3] + f[4] + f[5] + f[6] + f[7] + f[8];
 }
 
-static Result partOne(int n, const int64_t fish[n]) {
-    assert(n == 9);
-    return (Result){simulate(fish, 80), 5934, 391671};
+static int64_t partOne(const int64_t fish[9]) {
+    return simulate(fish, 80);
 }
 
-static Result partTwo(int n, const int64_t fish[n]) {
-    assert(n == 9);
-    return (Result){simulate(fish, 256), 26984457539, 1754000560399};
+static int64_t partTwo(const int64_t fish[9]) {
+    return simulate(fish, 256);
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    int64_t fish[9] = {0};
+    parse(input, fish);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(fish),
+                   5934, 391671);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(fish),
+                   26984457539, 1754000560399);
+
+    return 0;
 }

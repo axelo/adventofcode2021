@@ -1,6 +1,6 @@
-#define DAY 05
-#define INPUT Line input[INPUT_CAP]
-#define INPUT_CAP 4096
+#include "Helpers.c"
+
+#define CAP 4096
 
 typedef struct {
     int x;
@@ -14,14 +14,12 @@ typedef struct {
     int h;
 } DiagramSize;
 
-#include "Runner.c"
-
-static int parse(const char *inputString, Line lines[INPUT_CAP]) {
+static int parse(const char *input, Line lines[CAP]) {
     int count = 0;
     int charsRead = 0;
     int filled = 0;
 
-    while ((filled = sscanf(inputString, "%d,%d -> %d,%d\n%n",
+    while ((filled = sscanf(input, "%d,%d -> %d,%d\n%n",
                             &lines[count][0].x,
                             &lines[count][0].y,
                             &lines[count][1].x,
@@ -29,11 +27,11 @@ static int parse(const char *inputString, Line lines[INPUT_CAP]) {
                             &charsRead)) != EOF) {
         assert(filled == 4 && "parseInput: Failed to parse input");
 
-        inputString += charsRead;
+        input += charsRead;
 
         ++count;
 
-        assert(count < INPUT_CAP);
+        assert(count < CAP);
     }
 
     return count;
@@ -53,9 +51,7 @@ static DiagramSize diagramSizeFromLines(int count, const Line lines[count]) {
                                       : maxY;
     }
 
-    DiagramSize result = {.w = maxX + 1, .h = maxY + 1};
-
-    return result;
+    return (DiagramSize){.w = maxX + 1, .h = maxY + 1};
 }
 
 static void drawLines(int nLines, const Line lines[nLines], int h, int w, int diagram[h][w]) {
@@ -98,7 +94,7 @@ static int countOverlaps(int h, int w, const int diagram[h][w]) {
     return overlaps;
 }
 
-static Result partOne(int count, const Line lines[count]) {
+static int partOne(int count, const Line lines[count]) {
     Line vhLines[count];
     memset(vhLines, 0, sizeof(Line) * count);
 
@@ -117,10 +113,10 @@ static Result partOne(int count, const Line lines[count]) {
 
     drawLines(countVH, vhLines, size.h, size.w, diagram);
 
-    return (Result){countOverlaps(size.h, size.w, diagram), 5, 7318};
+    return countOverlaps(size.h, size.w, diagram);
 }
 
-static Result partTwo(int count, const Line lines[count]) {
+static int partTwo(int count, const Line lines[count]) {
     DiagramSize size = diagramSizeFromLines(count, lines);
 
     int diagram[size.h][size.w];
@@ -128,5 +124,22 @@ static Result partTwo(int count, const Line lines[count]) {
 
     drawLines(count, lines, size.h, size.w, diagram);
 
-    return (Result){countOverlaps(size.h, size.w, diagram), 12, 19939};
+    return countOverlaps(size.h, size.w, diagram);
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    Line lines[CAP] = {0};
+    int n = parse(input, lines);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, lines),
+                   5, 7318);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, lines),
+                   12, 19939);
+
+    return 0;
 }

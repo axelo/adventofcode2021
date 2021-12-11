@@ -1,6 +1,6 @@
-#define DAY 02
-#define INPUT_CAP 4096
-#define INPUT Command input[INPUT_CAP]
+#include "Helpers.c"
+
+#define CAP 4096
 
 typedef enum {
     Idle = 0,
@@ -14,16 +14,14 @@ typedef struct {
     int delta;
 } Command;
 
-#include "Runner.c"
-
-static int parse(const char *inputString, Command commands[INPUT_CAP]) {
+static int parse(const char *input, Command commands[CAP]) {
     char dirString[32] = {0};
     int charsRead = 0;
     int filled = 0;
 
     int n = 0;
 
-    while ((filled = sscanf(inputString, "%32s %u\n%n", dirString, &commands[n].delta, &charsRead)) != EOF) {
+    while ((filled = sscanf(input, "%32s %u\n%n", dirString, &commands[n].delta, &charsRead)) != EOF) {
         assert(filled == 2 && "parseInput: Failed to parse input");
 
         Direction dir =
@@ -36,15 +34,15 @@ static int parse(const char *inputString, Command commands[INPUT_CAP]) {
 
         commands[n++].dir = dir;
 
-        assert(n < INPUT_CAP);
+        assert(n < CAP);
 
-        inputString += charsRead;
+        input += charsRead;
     }
 
     return n;
 }
 
-static Result partOne(int n, const Command commands[n]) {
+static int partOne(int n, const Command commands[n]) {
     int horizontalPos = 0;
     int depth = 0;
 
@@ -64,10 +62,10 @@ static Result partOne(int n, const Command commands[n]) {
         }
     }
 
-    return (Result){horizontalPos * depth, 150, 1815044};
+    return horizontalPos * depth;
 }
 
-static Result partTwo(int n, const Command commands[n]) {
+static int partTwo(int n, const Command commands[n]) {
     int horizontalPos = 0;
     int depth = 0;
     int aim = 0;
@@ -89,5 +87,22 @@ static Result partTwo(int n, const Command commands[n]) {
         }
     }
 
-    return (Result){horizontalPos * depth, 900, 1739283308};
+    return horizontalPos * depth;
+}
+
+int main() {
+    const char *input = Helpers_readInputFile(__FILE__);
+
+    Command commands[CAP] = {0};
+    int n = parse(input, commands);
+
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, commands),
+                   150, 1815044);
+
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, commands),
+                   900, 1739283308);
+
+    return 0;
 }
