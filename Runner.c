@@ -49,19 +49,19 @@ static int64_t Runner_micros() {
     return ((int64_t)now.tv_sec) * 1000000 + ((int64_t)now.tv_nsec) / 1000;
 }
 
-static void Runner_readInput(char *destination, size_t maxSize) {
+static void Runner_readInput(size_t n, char destination[n]) {
     FILE *file = fopen(RUNNER_INPUT_FILENAME, "r");
 
     assert(file != NULL && "fopen: Couldn't open input file");
 
-    assert(fread(destination, 1, maxSize, file) != maxSize && "fread: Couldn't fit the entire file into destination");
+    assert(fread(destination, 1, n, file) != n && "fread: Couldn't fit the entire file into destination");
 
     assert(fclose(file) == 0 && "fclose: Couldn't close the input file");
 }
 
 int main() {
-    char inputString[32 * 1024];
-    Runner_readInput(inputString, sizeof(inputString));
+    char inputString[24 * 1024];
+    Runner_readInput(sizeof(inputString), inputString);
 
     INPUT = {0};
     INPUT_N n = parse(inputString, input);

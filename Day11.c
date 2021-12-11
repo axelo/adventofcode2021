@@ -1,11 +1,18 @@
-#include <stdbool.h> // bool
+// #include <stdbool.h> // bool
 
-#define DAY 11
-#define INPUT int input[SIZE][SIZE]
+// #define DAY 11
+// #define INPUT int input[SIZE][SIZE]
+
+// #include "Runner.c"
+#include "Helpers.c"
 
 #define SIZE 10
 
-#include "Runner.c"
+typedef struct {
+    int64_t actual;
+    int64_t expectedExample;
+    int64_t expected;
+} Result;
 
 static int parse(const char *inputString, int octopuses[SIZE][SIZE]) {
     int charsRead;
@@ -74,10 +81,8 @@ static int simulate(int octopuses[SIZE][SIZE]) {
     return nFlashes;
 }
 
-static Result partOne(int n, const int initialState[n][SIZE]) {
-    assert(n == SIZE);
-
-    int octopuses[n][SIZE];
+static Result partOne(const int initialState[SIZE][SIZE]) {
+    int octopuses[SIZE][SIZE];
     memcpy(octopuses, initialState, sizeof(octopuses));
 
     int totalFlashes = 0;
@@ -102,4 +107,30 @@ static Result partTwo(int n, const int initialState[n][SIZE]) {
     }
 
     return (Result){step, 195, 360};
+}
+
+int64_t Helpers_clock() {
+    struct timespec now;
+    timespec_get(&now, TIME_UTC);
+    return ((int64_t)now.tv_sec) * 1000000 + ((int64_t)now.tv_nsec) / 1000;
+}
+
+void Helpers_run(int64_t start, Result result) {
+    int64_t end = Helpers_clock();
+
+    printf("Part one: %lld, took %lld us\n", result.actual, end - start);
+
+    assert(result.actual == Helpers_readInputFile_useExample
+               ? result.expectedExample
+               : result.expected);
+}
+
+int main() {
+    int octopuses[SIZE][SIZE] = {0};
+
+    parse(Helpers_readInputFile(11), octopuses);
+
+    Helpers_run(Helpers_clock(), partOne(octopuses));
+
+    return 0;
 }
