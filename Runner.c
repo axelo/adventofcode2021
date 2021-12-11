@@ -7,10 +7,6 @@
 #error DAY is not defined
 #endif
 
-#ifndef INPUT_CAP
-#error INPUT_CAP is not defined
-#endif
-
 #ifndef INPUT
 #error INPUT is not defined
 #endif
