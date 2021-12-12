@@ -2,8 +2,6 @@
 
 #define N UINT16_MAX
 #define CONN_CAP 32
-#define PATH_CAP 32
-#define PATHS_CAP 1000000
 
 typedef uint16_t CaveId;
 
