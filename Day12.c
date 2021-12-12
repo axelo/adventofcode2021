@@ -1,7 +1,11 @@
 #include "Helpers.c"
 
-#define N UINT16_MAX
-#define CONN_CAP 32
+#define N ((('z' << 8) | 'z') + 1)
+#define CONN_CAP 8
+
+#define START_CAVE_ID 0
+#define END_CAVE_ID 1
+#define BIG_CAVE_ID_MAX (('Z' << 8) | 'Z')
 
 typedef uint16_t CaveId;
 
@@ -10,13 +14,10 @@ typedef struct {
     CaveId connections[CONN_CAP];
 } Cave;
 
-static const CaveId startCaveId = 0;
-static const CaveId endCaveId = 1;
-
 static CaveId idFromString(const char *s) {
     switch (strnlen(s, 6)) {
-    case 5: return startCaveId;
-    case 3: return endCaveId;
+    case 5: return START_CAVE_ID;
+    case 3: return END_CAVE_ID;
     case 2: return (s[0] << 8) | s[1];
     case 1: return (s[0] << 8) | s[0];
     default: assert(false);
@@ -24,19 +25,19 @@ static CaveId idFromString(const char *s) {
 }
 
 static void parse(const char *input, Cave caves[N]) {
-    char from[8] = {0};
-    char to[8] = {0};
+    char a[8] = {0};
+    char b[8] = {0};
     int charsRead = 0;
     int filled;
 
-    while ((filled = sscanf(input, "%7[^-]-%7s\n%n", from, to, &charsRead)) == 2) {
-        uint16_t idA = idFromString(from);
-        uint16_t idB = idFromString(to);
+    while ((filled = sscanf(input, "%7[^-]-%7s\n%n", a, b, &charsRead)) == 2) {
+        CaveId idA = idFromString(a);
+        CaveId idB = idFromString(b);
 
         caves[idA].connections[caves[idA].nConnections++] = idB;
-        assert(caves[idA].nConnections < CONN_CAP);
-
         caves[idB].connections[caves[idB].nConnections++] = idA;
+
+        assert(caves[idA].nConnections < CONN_CAP);
         assert(caves[idB].nConnections < CONN_CAP);
 
         input += charsRead;
@@ -44,18 +45,18 @@ static void parse(const char *input, Cave caves[N]) {
 }
 
 static int countPaths(const Cave caves[N], const CaveId id, const uint8_t maxVisitsOnce, uint8_t visited[N], bool visitedMaxOnce) {
-    if (id == endCaveId) {
+    if (id == END_CAVE_ID) {
         return 1;
     }
 
     if ((!visitedMaxOnce && visited[id] >= maxVisitsOnce) ||
-        ((visitedMaxOnce || id == startCaveId) && visited[id] > 0)) {
+        ((visitedMaxOnce || id == START_CAVE_ID) && visited[id] > 0)) {
         return 0;
     }
 
-    bool isBigCave = id != startCaveId && id <= (('Z' << 8) | 'Z');
+    bool isSmallCave = id == START_CAVE_ID || id > BIG_CAVE_ID_MAX;
 
-    if (!isBigCave && ++visited[id] >= maxVisitsOnce) {
+    if (isSmallCave && ++visited[id] >= maxVisitsOnce) {
         visitedMaxOnce = true;
     }
 
@@ -75,13 +76,13 @@ static int countPaths(const Cave caves[N], const CaveId id, const uint8_t maxVis
 static int partOne(const Cave caves[N]) {
     uint8_t visited[N] = {0};
 
-    return countPaths(caves, startCaveId, 1, visited, false);
+    return countPaths(caves, START_CAVE_ID, 1, visited, false);
 }
 
 static int partTwo(const Cave caves[N]) {
     uint8_t visited[N] = {0};
 
-    return countPaths(caves, startCaveId, 2, visited, false);
+    return countPaths(caves, START_CAVE_ID, 2, visited, false);
 }
 
 int main() {
