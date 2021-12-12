@@ -7,7 +7,7 @@
 set -euxo pipefail
 
 if [ "${1-}" == "all" ]; then
-    for i in {01..11}
+    for i in {01..12}
     do
     ./$0 Day$(printf "%02d" $i).c ${2-}
     done
@@ -24,12 +24,11 @@ else
 
     DEFINES=""
 
-
     if [ "${2-}" == "example" ]; then
         DEFINES="-DEXAMPLE"
     fi
 
-    # -fsanitize=address
     # -std=c18 Use C standard C18
-    cc -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
+    # -fsanitize=address Detect address errors during runtime, adds extra code.
+    cc -fsanitize=address -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
 fi

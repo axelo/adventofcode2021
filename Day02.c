@@ -21,7 +21,7 @@ static int parse(const char *input, Command commands[CAP]) {
 
     int n = 0;
 
-    while ((filled = sscanf(input, "%32s %u\n%n", dirString, &commands[n].delta, &charsRead)) != EOF) {
+    while ((filled = sscanf(input, "%31s %u\n%n", dirString, &commands[n].delta, &charsRead)) != EOF) {
         assert(filled == 2 && "parseInput: Failed to parse input");
 
         Direction dir =

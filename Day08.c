@@ -39,7 +39,7 @@ static int parse(const char *input, Entry entries[CAP]) {
 
     for (; input < inputStringEnd; ++n) {
         for (int i = 0; i < 10; ++i) {
-            int filled = sscanf(input, "%8[^ ]%n", segmentsString, &charsRead);
+            int filled = sscanf(input, "%7[^ ]%n", segmentsString, &charsRead);
             assert(filled == 1);
 
             entries[n].signals[i] = segmentsFromString(segmentsString);
@@ -53,7 +53,7 @@ static int parse(const char *input, Entry entries[CAP]) {
         input += charsRead;
 
         for (int i = 0; i < 4; ++i) {
-            int filled = sscanf(input, "%8[^ \n]%n", segmentsString, &charsRead);
+            int filled = sscanf(input, "%7[^ \n]%n", segmentsString, &charsRead);
             assert(filled == 1);
 
             entries[n].outputs[i] = segmentsFromString(segmentsString);
