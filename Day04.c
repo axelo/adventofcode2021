@@ -29,7 +29,7 @@ static void parse(const char *inputString, Input *input) {
 
     char numbersString[1024] = {0};
 
-    assert(sscanf(inputString, "%1024s\n\n%n", numbersString, &charsRead) == 1);
+    assert(sscanf(inputString, "%1023s\n\n%n", numbersString, &charsRead) == 1);
     assert((size_t)charsRead < sizeof(numbersString));
 
     char *numbersStringPtr = numbersString;
