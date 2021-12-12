@@ -44,26 +44,28 @@ static void parse(const char *input, Cave caves[N]) {
     }
 }
 
-static int countPaths(const Cave caves[N], const CaveId id, const uint8_t maxVisitsOnce, uint8_t visited[N], bool visitedMaxOnce) {
+static int countPathsHelp(const Cave caves[N], const CaveId id, const uint8_t maxVisitsOnce, uint8_t visited[N], bool hasVisitedMaxOnce) {
     if (id == END_CAVE_ID) {
         return 1;
     }
 
-    if ((!visitedMaxOnce && visited[id] >= maxVisitsOnce) ||
-        ((visitedMaxOnce || id == START_CAVE_ID) && visited[id] > 0)) {
+    if ((!hasVisitedMaxOnce && visited[id] >= maxVisitsOnce) ||
+        ((hasVisitedMaxOnce || id == START_CAVE_ID) && visited[id] > 0)) {
         return 0;
     }
 
     bool isSmallCave = id == START_CAVE_ID || id > BIG_CAVE_ID_MAX;
 
-    if (isSmallCave && ++visited[id] >= maxVisitsOnce) {
-        visitedMaxOnce = true;
-    }
+    if (isSmallCave) {
+        ++visited[id];
+    };
+
+    hasVisitedMaxOnce |= visited[id] >= maxVisitsOnce;
 
     int n = 0;
 
     for (int i = 0; i < caves[id].nConnections; ++i) {
-        n += countPaths(caves, caves[id].connections[i], maxVisitsOnce, visited, visitedMaxOnce);
+        n += countPathsHelp(caves, caves[id].connections[i], maxVisitsOnce, visited, hasVisitedMaxOnce);
     }
 
     if (visited[id] > 0) {
@@ -73,16 +75,17 @@ static int countPaths(const Cave caves[N], const CaveId id, const uint8_t maxVis
     return n;
 }
 
-static int partOne(const Cave caves[N]) {
+static int countPaths(const Cave caves[N], const uint8_t maxVisitsOnce) {
     uint8_t visited[N] = {0};
+    return countPathsHelp(caves, START_CAVE_ID, maxVisitsOnce, visited, false);
+}
 
-    return countPaths(caves, START_CAVE_ID, 1, visited, false);
+static int partOne(const Cave caves[N]) {
+    return countPaths(caves, 1);
 }
 
 static int partTwo(const Cave caves[N]) {
-    uint8_t visited[N] = {0};
-
-    return countPaths(caves, START_CAVE_ID, 2, visited, false);
+    return countPaths(caves, 2);
 }
 
 int main() {
