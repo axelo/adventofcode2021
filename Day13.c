@@ -1,7 +1,7 @@
 #include "Helpers.c"
 
-#define DOTS_CAP 1400
 #define FOLD_CAP 20
+#define POINTS_CAP 1000
 
 typedef struct {
     int pos;
@@ -9,9 +9,15 @@ typedef struct {
 } Fold;
 
 typedef struct {
+    int16_t x;
+    int16_t y;
+} Point;
+
+typedef struct {
     int h;
     int w;
-    bool dots[DOTS_CAP][DOTS_CAP];
+    int nPoints;
+    Point points[POINTS_CAP];
 } Paper;
 
 static int parse(const char *input, Paper *paper, Fold folds[FOLD_CAP]) {
@@ -19,13 +25,14 @@ static int parse(const char *input, Paper *paper, Fold folds[FOLD_CAP]) {
     int y = 0;
     int charsRead = 0;
 
-    while (sscanf(input, "%d,%d\n%n", &x, &y, &charsRead) == 2) {
-        assert(y < DOTS_CAP);
-        assert(x < DOTS_CAP);
+    paper->nPoints = 0;
 
-        paper->dots[y][x] = true;
+    while (sscanf(input, "%d,%d\n%n", &x, &y, &charsRead) == 2) {
         paper->h = y > paper->h ? y : paper->h;
         paper->w = x > paper->w ? x : paper->w;
+
+        paper->points[paper->nPoints++] = (Point){.x = x, .y = y};
+        assert(paper->nPoints < POINTS_CAP);
 
         input += charsRead;
     }
@@ -49,10 +56,10 @@ static int parse(const char *input, Paper *paper, Fold folds[FOLD_CAP]) {
     return nFolds;
 }
 
-static void printPaper(const Paper *paper) {
-    for (int y = 0; y < paper->h; ++y) {
-        for (int x = 0; x < paper->w; ++x) {
-            printf("%c", paper->dots[y][x] ? '#' : '.');
+static void printDots(int w, int h, const bool dots[h][w]) {
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            printf("%c", dots[y][x] ? '#' : ' ');
         }
         printf("\n");
     }
@@ -60,17 +67,17 @@ static void printPaper(const Paper *paper) {
 
 static void fold(const Fold fold, Paper *paper) {
     if (fold.yAxis) {
-        for (int y = fold.pos + 1; y < paper->h; ++y) {
-            for (int x = 0; x < paper->w; ++x) {
-                paper->dots[paper->h - y - 1][x] |= paper->dots[y][x];
+        for (int i = 0; i < paper->nPoints; ++i) {
+            if (paper->points[i].y > fold.pos) {
+                paper->points[i].y = paper->h - paper->points[i].y - 1;
             }
         }
 
         paper->h /= 2;
     } else {
-        for (int y = 0; y < paper->h; ++y) {
-            for (int x = fold.pos + 1; x < paper->w; ++x) {
-                paper->dots[y][paper->w - x - 1] |= paper->dots[y][x];
+        for (int i = 0; i < paper->nPoints; ++i) {
+            if (paper->points[i].x > fold.pos) {
+                paper->points[i].x = paper->w - paper->points[i].x - 1;
             }
         }
 
@@ -78,27 +85,31 @@ static void fold(const Fold fold, Paper *paper) {
     }
 }
 
-static int countDots(const Paper *paper) {
-    int count = 0;
+static int dotsFromPaper(const Paper *paper, bool dots[paper->h][paper->w]) {
+    memset(dots, false, sizeof(dots[0][0]) * paper->h * paper->w);
 
-    for (int y = 0; y < paper->h; ++y) {
-        for (int x = 0; x < paper->w; ++x) {
-            if (paper->dots[y][x]) {
-                ++count;
-            }
+    int drawnOnce = 0;
+
+    for (int i = 0; i < paper->nPoints; ++i) {
+        int x = paper->points[i].x;
+        int y = paper->points[i].y;
+
+        if (y < paper->h && x < paper->w && !dots[y][x]) {
+            dots[y][x] = true;
+            ++drawnOnce;
         }
     }
 
-    return count;
+    return drawnOnce;
 }
 
 // Modified from https://stackoverflow.com/a/21001712/390189
-static int64_t checksum(const Paper *paper) {
+static int64_t checksumFromDots(int h, int w, const bool dots[h][w]) {
     int64_t r = ~0;
 
-    for (int y = 0; y < paper->h; ++y) {
-        for (int x = 0; x < paper->w; ++x) {
-            r ^= paper->dots[y][x];
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            r ^= dots[y][x];
 
             for (int i = 0; i < 8; i++) {
                 int64_t t = ~((r & 1) - 1);
@@ -110,26 +121,32 @@ static int64_t checksum(const Paper *paper) {
     return ~r;
 }
 
-static int partOne(const Paper *paper, int nFolds, const Fold folds[nFolds]) {
-    Paper copy;
-    memcpy(&copy, paper, sizeof(copy));
+static int partOne(const Paper *unFoldedPaper, int nFolds, const Fold folds[nFolds]) {
+    Paper paper = {0};
+    memcpy(&paper, unFoldedPaper, sizeof(paper));
 
-    fold(folds[0], &copy);
+    fold(folds[0], &paper);
 
-    return countDots(&copy);
+    bool dots[paper.h][paper.w];
+
+    return dotsFromPaper(&paper, dots);
 }
 
-static int64_t partTwo(const Paper *paper, int nFolds, const Fold folds[nFolds]) {
-    Paper copy;
-    memcpy(&copy, paper, sizeof(copy));
+static int64_t partTwo(const Paper *unfoldedPaper, int nFolds, const Fold folds[nFolds]) {
+    Paper paper = {0};
+    memcpy(&paper, unfoldedPaper, sizeof(paper));
 
     for (int i = 0; i < nFolds; ++i) {
-        fold(folds[i], &copy);
+        fold(folds[i], &paper);
     }
 
-    printPaper(&copy);
+    bool dots[paper.h][paper.w];
 
-    return checksum(&copy);
+    dotsFromPaper(&paper, dots);
+
+    printDots(paper.w, paper.h, dots);
+
+    return checksumFromDots(paper.w, paper.h, dots);
 }
 
 int main() {
