@@ -21,10 +21,10 @@ static int parse(const char *input, uint8_t template[TEMPLATE_CAP], uint8_t rule
     uint8_t p1 = 0;
     uint8_t r = 0;
 
-    while (sscanf(input, "%c%c -> %c\n%n", &p1, &p0, &r, &charsRead) == 3) {
+    while (sscanf(input, "%c%c -> %c\n%n", &p0, &p1, &r, &charsRead) == 3) {
         assert(p0 <= 'Z' && p1 <= 'Z' && r <= 'Z');
 
-        rules[p1][p0] = r;
+        rules[p0][p1] = r;
 
         input += charsRead;
     }
