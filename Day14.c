@@ -81,6 +81,8 @@ static int64_t pairFromTemplate(int n, const uint8_t template[n], const uint8_t 
         nPrev = nNext;
         nNext = 0;
 
+        // Consider every previous pair and insert new pairs based on rules.
+        // Pass along the previous pair count on insertion as we will do the "same" insertion for every pair count.
         for (int i = 0; i < nPrev; ++i) {
             uint8_t insert = rules[prevPairs[i].p0][prevPairs[i].p1];
 
@@ -106,7 +108,7 @@ static int64_t pairFromTemplate(int n, const uint8_t template[n], const uint8_t 
     int64_t max = 0;
     int64_t min = INT64_MAX;
 
-    for (uint8_t i = 0; i < RULES_CAP; ++i) {
+    for (int i = 0; i < RULES_CAP; ++i) {
         max = counts[i] > max ? counts[i] : max;
         min = counts[i] > 0 && counts[i] < min ? counts[i] : min;
     }
@@ -125,8 +127,8 @@ static int64_t partTwo(int n, const uint8_t template[n], const uint8_t rules[RUL
 int main() {
     const char *input = Helpers_readInputFile(__FILE__);
 
-    uint8_t rules[RULES_CAP][RULES_CAP] = {0};
     uint8_t template[TEMPLATE_CAP] = {0};
+    uint8_t rules[RULES_CAP][RULES_CAP] = {0};
     int n = parse(input, template, rules);
 
     Helpers_assert(PART1, Helpers_clock(),
