@@ -4,30 +4,30 @@
 #define POINTS_CAP 1000
 
 typedef struct {
-    int pos;
+    uint16_t pos;
     bool yAxis;
 } Fold;
 
 typedef struct {
-    int16_t x;
-    int16_t y;
+    uint16_t x;
+    uint16_t y;
 } Point;
 
 typedef struct {
-    int h;
-    int w;
+    uint16_t h;
+    uint16_t w;
     int nPoints;
     Point points[POINTS_CAP];
 } Paper;
 
 static int parse(const char *input, Paper *paper, Fold folds[FOLD_CAP]) {
-    int x = 0;
-    int y = 0;
+    uint16_t x = 0;
+    uint16_t y = 0;
     int charsRead = 0;
 
     paper->nPoints = 0;
 
-    while (sscanf(input, "%d,%d\n%n", &x, &y, &charsRead) == 2) {
+    while (sscanf(input, "%hd,%hd\n%n", &x, &y, &charsRead) == 2) {
         paper->h = y > paper->h ? y : paper->h;
         paper->w = x > paper->w ? x : paper->w;
 
@@ -46,7 +46,7 @@ static int parse(const char *input, Paper *paper, Fold folds[FOLD_CAP]) {
     char xOrY = '0';
     int nFolds = 0;
 
-    while (sscanf(input, "fold along %c=%d\n%n", &xOrY, &x, &charsRead) == 2) {
+    while (sscanf(input, "fold along %c=%hd\n%n", &xOrY, &x, &charsRead) == 2) {
         folds[nFolds++] = (Fold){.pos = x, .yAxis = xOrY == 'y'};
         assert(nFolds < FOLD_CAP);
 
@@ -54,35 +54,6 @@ static int parse(const char *input, Paper *paper, Fold folds[FOLD_CAP]) {
     }
 
     return nFolds;
-}
-
-static void printDots(int w, int h, const bool dots[h][w]) {
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            printf("%c", dots[y][x] ? '#' : ' ');
-        }
-        printf("\n");
-    }
-}
-
-static void fold(const Fold fold, Paper *paper) {
-    if (fold.yAxis) {
-        for (int i = 0; i < paper->nPoints; ++i) {
-            if (paper->points[i].y > fold.pos) {
-                paper->points[i].y = paper->h - paper->points[i].y - 1;
-            }
-        }
-
-        paper->h /= 2;
-    } else {
-        for (int i = 0; i < paper->nPoints; ++i) {
-            if (paper->points[i].x > fold.pos) {
-                paper->points[i].x = paper->w - paper->points[i].x - 1;
-            }
-        }
-
-        paper->w /= 2;
-    }
 }
 
 static int dotsFromPaper(const Paper *paper, bool dots[paper->h][paper->w]) {
@@ -94,7 +65,9 @@ static int dotsFromPaper(const Paper *paper, bool dots[paper->h][paper->w]) {
         int x = paper->points[i].x;
         int y = paper->points[i].y;
 
-        if (y < paper->h && x < paper->w && !dots[y][x]) {
+        assert(x < paper->w && y < paper->h);
+
+        if (!dots[y][x]) {
             dots[y][x] = true;
             ++drawnOnce;
         }
@@ -121,9 +94,43 @@ static int64_t checksumFromDots(int h, int w, const bool dots[h][w]) {
     return ~r;
 }
 
-static int partOne(const Paper *unFoldedPaper, int nFolds, const Fold folds[nFolds]) {
+static int64_t printPaper(const Paper *paper) {
+    bool dots[paper->h][paper->w];
+    dotsFromPaper(paper, dots);
+
+    for (int y = 0; y < paper->h; ++y) {
+        for (int x = 0; x < paper->w; ++x) {
+            printf(dots[y][x] ? "#" : " ");
+        }
+        printf("\n");
+    }
+
+    return checksumFromDots(paper->h, paper->w, dots);
+}
+
+static void fold(const Fold fold, Paper *paper) {
+    if (fold.yAxis) {
+        for (int i = 0; i < paper->nPoints; ++i) {
+            if (paper->points[i].y > fold.pos) {
+                paper->points[i].y = paper->h - paper->points[i].y - 1;
+            }
+        }
+
+        paper->h /= 2;
+    } else {
+        for (int i = 0; i < paper->nPoints; ++i) {
+            if (paper->points[i].x > fold.pos) {
+                paper->points[i].x = paper->w - paper->points[i].x - 1;
+            }
+        }
+
+        paper->w /= 2;
+    }
+}
+
+static int partOne(const Paper *unfoldedPaper, int nFolds, const Fold folds[nFolds]) {
     Paper paper = {0};
-    memcpy(&paper, unFoldedPaper, sizeof(paper));
+    memcpy(&paper, unfoldedPaper, sizeof(paper));
 
     fold(folds[0], &paper);
 
@@ -140,13 +147,7 @@ static int64_t partTwo(const Paper *unfoldedPaper, int nFolds, const Fold folds[
         fold(folds[i], &paper);
     }
 
-    bool dots[paper.h][paper.w];
-
-    dotsFromPaper(&paper, dots);
-
-    printDots(paper.w, paper.h, dots);
-
-    return checksumFromDots(paper.w, paper.h, dots);
+    return printPaper(&paper);
 }
 
 int main() {
