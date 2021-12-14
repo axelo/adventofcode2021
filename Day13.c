@@ -116,7 +116,7 @@ static void fold(const Fold fold, Paper *paper) {
             }
         }
 
-        paper->h /= 2;
+        paper->h = fold.pos;
     } else {
         for (int i = 0; i < paper->nPoints; ++i) {
             if (paper->points[i].x > fold.pos) {
@@ -124,7 +124,7 @@ static void fold(const Fold fold, Paper *paper) {
             }
         }
 
-        paper->w /= 2;
+        paper->w = fold.pos;
     }
 }
 
