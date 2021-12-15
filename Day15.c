@@ -59,7 +59,7 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
     for (;;) {
         assert(nOpen > 0 && "Can't find any open nodes :/");
 
-        // Find the open node with smallest fScore value.
+        // Find the open node with smallest fScore value. O(n).
         int iOpen = 0;
         uint32_t minFScore = fScore[open[0].y][open[0].x];
 
@@ -78,7 +78,7 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
             return gScore[n - 1][n - 1];
         }
 
-        // Remove current node from our open list as we have discovered it now.
+        // Remove current node from our open list as we have discovered it now. O(n).
         for (int i = iOpen; i < nOpen - 1; ++i) {
             open[i] = open[i + 1];
         }
@@ -105,6 +105,7 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
                     gScore[ny][nx] = tentativeGScore;
                     fScore[ny][nx] = tentativeGScore + ((n - 1 - ny) + (n - 1 - nx));
 
+                    // Insert neighbor node. O(1).
                     open[nOpen++] = (Coord){.y = ny, .x = nx};
                     assert(nOpen < OPEN_CAP);
                 }
