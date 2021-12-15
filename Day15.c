@@ -20,17 +20,8 @@ static void parseMap(const char *input, int n, uint8_t map[n][n]) {
         input += charsRead;
 
         for (int x = 0; x < n; ++x) {
-            map[x][y] = row[x] - '0';
+            map[y][x] = row[x] - '0';
         }
-    }
-}
-
-static void dump(int n, const uint8_t map[n][n]) {
-    for (int y = 0; y < n; ++y) {
-        for (int x = 0; x < n; ++x) {
-            printf("%c", map[x][y] + '0');
-        }
-        printf("\n");
     }
 }
 
@@ -52,50 +43,53 @@ static int aStarSearch(int n, const uint8_t map[n][n]) {
     gScore[0][0] = 0;
     fScore[0][0] = (n - 1 - 0) + (n - 1 - 0); // h((0,0))
 
+    int cy = 0;
+    int cx = 0;
+
     for (;;) {
         uint32_t minFScore = UINT32_MAX;
-        int c[2] = {-1, -1};
 
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                if (openSet[i][j]) {
-                    if (fScore[i][j] < minFScore) {
-                        minFScore = fScore[i][j];
-                        c[0] = i;
-                        c[1] = j;
+        for (int y = 0; y < n; ++y) {
+            for (int x = 0; x < n; ++x) {
+                if (openSet[y][x]) {
+                    if (fScore[y][x] < minFScore) {
+                        minFScore = fScore[y][x];
+                        cy = y;
+                        cx = x;
                     }
                 }
             }
         }
 
         if (minFScore == UINT32_MAX) {
-            assert(false && "Can't find any nodes in the openSet");
+            assert(false && "Can't find any open nodes :/");
         }
 
-        if (c[0] == n - 1 && c[1] == n - 1) {
-            printf("Found the goal! gScore: %d\n", gScore[n - 1][n - 1]);
+        if (cx == n - 1 && cy == n - 1) {
             return gScore[n - 1][n - 1];
         }
 
-        openSet[c[0]][c[1]] = false;
+        openSet[cy][cx] = false;
 
         int neigh[4][2] = {
-            {c[0], c[1] - 1}, // Top.
-            {c[0] + 1, c[1]}, // Right.
-            {c[0], c[1] + 1}, // Bottom.
-            {c[0] - 1, c[1]}  // Left.
+            {cy, cx - 1}, // Left.
+            {cy + 1, cx}, // Bottom.
+            {cy, cx + 1}, // Right.
+            {cy - 1, cx}  // Top.
         };
 
         for (int i = 0; i < 4; ++i) {
-            if (neigh[i][0] >= 0 && neigh[i][0] < n && neigh[i][1] >= 0 && neigh[i][1] < n) {
-                uint32_t tentative_gScore = gScore[c[0]][c[1]] + map[neigh[i][0]][neigh[i][1]];
+            int ny = neigh[i][0];
+            int nx = neigh[i][1];
 
-                if (tentative_gScore < gScore[neigh[i][0]][neigh[i][1]]) {
-                    gScore[neigh[i][0]][neigh[i][1]] = tentative_gScore;
+            if (ny >= 0 && ny < n && nx >= 0 && nx < n) {
+                uint32_t tentative_gScore = gScore[cy][cx] + map[ny][nx];
 
-                    fScore[neigh[i][0]][neigh[i][1]] = tentative_gScore + ((n - 1 - neigh[i][0]) + (n - 1 - neigh[i][1]));
+                if (tentative_gScore < gScore[ny][nx]) {
+                    gScore[ny][nx] = tentative_gScore;
+                    fScore[ny][nx] = tentative_gScore + ((n - 1 - ny) + (n - 1 - nx));
 
-                    openSet[neigh[i][0]][neigh[i][1]] = true;
+                    openSet[ny][nx] = true;
                 }
             }
         }
@@ -106,37 +100,37 @@ static int partOne(int n, const uint8_t map[n][n]) {
     return aStarSearch(n, map);
 }
 
-static int partTwo(int n, const uint8_t map[n][n]) {
+static int partTwo(int n, const uint8_t tile[n][n]) {
     int m = n * 5;
-    uint8_t map2[m][m];
+    uint8_t map[m][m];
 
     for (int y = 0; y < n; ++y) {
         for (int x = 0; x < n; ++x) {
-            map2[x][y] = map[x][y];
+            map[y][x] = tile[y][x];
         }
     }
 
-    for (int k = 0; k < 5; ++k) {
-        for (int y = k * n; y < (k + 1) * n; ++y) {
+    for (int i = 0; i < 5; ++i) {
+        for (int y = i * n; y < (i + 1) * n; ++y) {
             for (int x = n; x < m; ++x) {
-                map2[x][y] = map2[x - n][y] + 1;
-                if (map2[x][y] > 9) {
-                    map2[x][y] = 1;
+                map[y][x] = map[y][x - n] + 1;
+                if (map[y][x] > 9) {
+                    map[y][x] = 1;
                 }
             }
         }
 
         for (int y = n; y < m; ++y) {
-            for (int x = k * n; x < (k + 1) * n; ++x) {
-                map2[x][y] = map2[x][y - n] + 1;
-                if (map2[x][y] > 9) {
-                    map2[x][y] = 1;
+            for (int x = i * n; x < (i + 1) * n; ++x) {
+                map[y][x] = map[y - n][x] + 1;
+                if (map[y][x] > 9) {
+                    map[y][x] = 1;
                 }
             }
         }
     }
 
-    return aStarSearch(m, map2);
+    return aStarSearch(m, map);
 }
 
 int main() {
@@ -146,7 +140,6 @@ int main() {
 
     uint8_t map[n][n];
     parseMap(input, n, map);
-    dump(n, map);
 
     Helpers_assert(PART1, Helpers_clock(),
                    partOne(n, map),
