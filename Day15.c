@@ -31,14 +31,15 @@ static int aStarSearch(int n, const uint8_t map[n][n]) {
     bool openSet[n][n];
     memset(openSet, false, n * n * sizeof(openSet[0][0]));
 
-    // Cost of the cheapest path from start to node n currently known.
+    // Cost of the shortest path from start to node n currently known.
     uint32_t gScore[n][n];
     memset(gScore, UINT32_MAX, n * n * sizeof(gScore[0][0]));
 
-    // Current best guess as to how short a path from start to finish can be if it goes through node n
+    // Current best guess to how short a path from start to goal can be if it goes through node n.
     uint32_t fScore[n][n];
     memset(fScore, UINT32_MAX, n * n * sizeof(fScore[0][0]));
 
+    // Start node is (0,0).
     openSet[0][0] = true;
     gScore[0][0] = 0;
     fScore[0][0] = (n - 1 - 0) + (n - 1 - 0); // h((0,0))
@@ -51,12 +52,10 @@ static int aStarSearch(int n, const uint8_t map[n][n]) {
 
         for (int y = 0; y < n; ++y) {
             for (int x = 0; x < n; ++x) {
-                if (openSet[y][x]) {
-                    if (fScore[y][x] < minFScore) {
-                        minFScore = fScore[y][x];
-                        cy = y;
-                        cx = x;
-                    }
+                if (openSet[y][x] && fScore[y][x] < minFScore) {
+                    minFScore = fScore[y][x];
+                    cy = y;
+                    cx = x;
                 }
             }
         }
@@ -69,8 +68,9 @@ static int aStarSearch(int n, const uint8_t map[n][n]) {
             return gScore[n - 1][n - 1];
         }
 
-        openSet[cy][cx] = false;
+        openSet[cy][cx] = false; // Remove current node from open set.
 
+        // Neighbor nodes to current node.
         int neigh[4][2] = {
             {cy, cx - 1}, // Left.
             {cy + 1, cx}, // Bottom.
@@ -83,11 +83,11 @@ static int aStarSearch(int n, const uint8_t map[n][n]) {
             int nx = neigh[i][1];
 
             if (ny >= 0 && ny < n && nx >= 0 && nx < n) {
-                uint32_t tentative_gScore = gScore[cy][cx] + map[ny][nx];
+                uint32_t tentativeGScore = gScore[cy][cx] + map[ny][nx];
 
-                if (tentative_gScore < gScore[ny][nx]) {
-                    gScore[ny][nx] = tentative_gScore;
-                    fScore[ny][nx] = tentative_gScore + ((n - 1 - ny) + (n - 1 - nx));
+                if (tentativeGScore < gScore[ny][nx]) {
+                    gScore[ny][nx] = tentativeGScore;
+                    fScore[ny][nx] = tentativeGScore + ((n - 1 - ny) + (n - 1 - nx));
 
                     openSet[ny][nx] = true;
                 }
