@@ -1,5 +1,12 @@
 #include "Helpers.c"
 
+#define OPEN_CAP 2000
+
+typedef struct {
+    uint16_t y;
+    uint16_t x;
+} Coord;
+
 static int parseSize(const char *input) {
     const char *inputFirstLine = input;
 
@@ -25,71 +32,82 @@ static void parseMap(const char *input, int n, uint8_t map[n][n]) {
     }
 }
 
-// Inspired from https://en.wikipedia.org/wiki/A*_search_algorithm
-// h(n) is the manhattan distance to bottom-right (n-1, n-1)
-static int aStarSearch(int n, const uint8_t map[n][n]) {
-    bool openSet[n][n];
-    memset(openSet, false, n * n * sizeof(openSet[0][0]));
-
+// Inspired from https://en.wikipedia.org/wiki/A*_search_algorithm,
+// h(n) is the Manhattan distance to bottom-right (n - 1, n - 1)
+static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
     // Cost of the shortest path from start to node n currently known.
     uint32_t gScore[n][n];
-    memset(gScore, UINT32_MAX, n * n * sizeof(gScore[0][0]));
+    memset(gScore, UINT32_MAX, n * n * sizeof(gScore[0][0])); // Fill with "infinity".
 
     // Current best guess to how short a path from start to goal can be if it goes through node n.
     uint32_t fScore[n][n];
-    memset(fScore, UINT32_MAX, n * n * sizeof(fScore[0][0]));
+    memset(fScore, UINT32_MAX, n * n * sizeof(fScore[0][0])); // Fill with "infinity".
 
-    // Start node is (0,0).
-    openSet[0][0] = true;
+    // List of open nodes that may be revisited.
+    Coord open[OPEN_CAP] = {0};
+
+    // Insert start node (0,0).
+    int nOpen = 1;
+    open[0] = (Coord){.y = 0, .x = 0};
+
+    // Set initial score to 0 at (0, 0)
     gScore[0][0] = 0;
+
+    // Best case scenario from (0, 0) to (n - 1, n - 1).
     fScore[0][0] = (n - 1 - 0) + (n - 1 - 0); // h((0,0))
 
-    int cy = 0;
-    int cx = 0;
-
     for (;;) {
-        uint32_t minFScore = UINT32_MAX;
+        assert(nOpen > 0 && "Can't find any open nodes :/");
 
-        for (int y = 0; y < n; ++y) {
-            for (int x = 0; x < n; ++x) {
-                if (openSet[y][x] && fScore[y][x] < minFScore) {
-                    minFScore = fScore[y][x];
-                    cy = y;
-                    cx = x;
-                }
+        // Find the open node with smallest fScore value. O(n).
+        int iOpen = 0;
+        uint32_t minFScore = fScore[open[0].y][open[0].x];
+
+        for (int i = 1; i < nOpen; ++i) {
+            if (fScore[open[i].y][open[i].x] < minFScore) {
+                minFScore = fScore[open[i].y][open[i].x];
+                iOpen = i;
             }
         }
 
-        if (minFScore == UINT32_MAX) {
-            assert(false && "Can't find any open nodes :/");
-        }
+        uint16_t cy = open[iOpen].y;
+        uint16_t cx = open[iOpen].x;
 
+        // If we've reached the goal, (n - 1, n - 1), return our gScore.
         if (cx == n - 1 && cy == n - 1) {
             return gScore[n - 1][n - 1];
         }
 
-        openSet[cy][cx] = false; // Remove current node from open set.
+        // Remove current node from our open list as we have discovered it now. O(n).
+        for (int i = iOpen; i < nOpen - 1; ++i) {
+            open[i] = open[i + 1];
+        }
+        --nOpen;
 
         // Neighbor nodes to current node.
-        int neigh[4][2] = {
+        uint16_t neigh[4][2] = {
             {cy, cx - 1}, // Left.
             {cy + 1, cx}, // Bottom.
             {cy, cx + 1}, // Right.
             {cy - 1, cx}  // Top.
         };
 
+        // Consider every neighbor.
         for (int i = 0; i < 4; ++i) {
-            int ny = neigh[i][0];
-            int nx = neigh[i][1];
+            uint16_t ny = neigh[i][0];
+            uint16_t nx = neigh[i][1];
 
-            if (ny >= 0 && ny < n && nx >= 0 && nx < n) {
+            if (ny < n && nx < n) {
                 uint32_t tentativeGScore = gScore[cy][cx] + map[ny][nx];
 
                 if (tentativeGScore < gScore[ny][nx]) {
+                    // Found a cheaper path than recorded, record this one.
                     gScore[ny][nx] = tentativeGScore;
                     fScore[ny][nx] = tentativeGScore + ((n - 1 - ny) + (n - 1 - nx));
 
-                    openSet[ny][nx] = true;
+                    // Insert neighbor node. O(1).
+                    open[nOpen++] = (Coord){.y = ny, .x = nx};
+                    assert(nOpen < OPEN_CAP);
                 }
             }
         }

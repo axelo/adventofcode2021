@@ -28,7 +28,7 @@ else
         DEFINES="-DEXAMPLE"
     fi
 
-    # -std=c18 Use C standard C18
-    # -fsanitize=address Detect address errors during runtime, adds extra code.
-    cc -fsanitize=address -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
+    # -std=c18              Use C standard C18
+    # -fsanitize=address    Detect address errors during runtime, adds extra code.
+    cc -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
 fi
