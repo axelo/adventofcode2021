@@ -23,24 +23,15 @@ static int parse(const char *input, uint8_t bits[CAP]) {
     return n;
 }
 
-// typedef struct {
-// } DecodeResult;
-
 static int64_t performOperation(uint8_t typeId, int64_t a, int64_t b) {
     switch (typeId) {
     case 0: return a + b;
-    case 1:
-        return a * b;
-    case 3:
-        return b > a ? b : a;
-    case 2:
-        return b < a ? b : a;
-    case 5:
-        return a > b;
-    case 6:
-        return a < b;
-    case 7:
-        return a == b;
+    case 1: return a * b;
+    case 3: return b > a ? b : a;
+    case 2: return b < a ? b : a;
+    case 5: return a > b;
+    case 6: return a < b;
+    case 7: return a == b;
     default:
         assert(false && "Unknown typeId");
     }
