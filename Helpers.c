@@ -61,7 +61,8 @@ void Helpers_assert(PART part, int64_t start, int64_t actual, int64_t expectedFr
                            ? expectedFromExample
                            : expectedFromInput;
 
-    printf("Part %d: %lld, expected %lld, took %lld us\n", part, actual, expected, end - start);
+    printf("Part %d: %lld, expected %lld, took %lld us (%f s)\n", part, actual, expected,
+           end - start, (float)(end - start) / 1000000);
 
     assert(actual == expected);
 }
