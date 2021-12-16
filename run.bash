@@ -7,7 +7,7 @@
 set -euxo pipefail
 
 if [ "${1-}" == "all" ]; then
-    for i in {01..15}
+    for i in {01..16}
     do
     ./$0 Day$(printf "%02d" $i).c ${2-}
     done
@@ -30,5 +30,5 @@ else
 
     # -std=c18              Use C standard C18
     # -fsanitize=address    Detect address errors during runtime, adds extra code.
-    cc -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
+    cc -fsanitize=address -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
 fi
