@@ -13,6 +13,7 @@ static int parse(const char *input, uint8_t bits[CAP]) {
         }
 
         uint8_t nibble = input[i] > '9' ? input[i] - 'A' + 10 : input[i] - '0';
+        assert(nibble >= 0 && nibble <= 15);
 
         for (int j = 3; j >= 0; --j) {
             bits[n++] = (nibble >> j) & 1;
@@ -32,16 +33,13 @@ static int64_t performOperation(uint8_t typeId, int64_t a, int64_t b) {
     case 5: return a > b;
     case 6: return a < b;
     case 7: return a == b;
-    default:
-        assert(false && "Unknown typeId");
+    default: assert(false && "Unknown typeId");
     }
 }
 
 // Returns consumed bits.
-static int decode(int n, const uint8_t bits[n], int *versionSum, int64_t *value) {
-    if (n < 6) {
-        assert(false && "Not enough bits for a valid packet");
-    }
+static int decode(int nBits, const uint8_t bits[nBits], int *versionSum, int64_t *value) {
+    assert(nBits > 5 && "Not enough bits for a valid packet");
 
     *versionSum += (bits[0] << 2) |
                    (bits[1] << 1) |
@@ -101,12 +99,12 @@ static int decode(int n, const uint8_t bits[n], int *versionSum, int64_t *value)
 
             assert(nSubPackets > 0);
 
-            bitIndex += decode(n - bitIndex, bits + bitIndex, versionSum, value);
+            bitIndex += decode(nBits - bitIndex, bits + bitIndex, versionSum, value);
 
             int64_t subValue = 0;
 
             for (int i = 1; i < nSubPackets; ++i) {
-                bitIndex += decode(n - bitIndex, bits + bitIndex, versionSum, &subValue);
+                bitIndex += decode(nBits - bitIndex, bits + bitIndex, versionSum, &subValue);
 
                 *value = performOperation(typeId, *value, subValue);
             }
