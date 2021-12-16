@@ -23,93 +23,124 @@ static int parse(const char *input, uint8_t bits[CAP]) {
     return n;
 }
 
-static int partOne(int n, const uint8_t bits[CAP], int *versionSum) {
-    printf("Next packet, available bits (n): %d\n", n);
+// typedef struct {
+// } DecodeResult;
 
+static int64_t performOperation(uint8_t typeId, int64_t a, int64_t b) {
+    switch (typeId) {
+    case 0: return a + b;
+    case 1:
+        return a * b;
+    case 3:
+        return b > a ? b : a;
+    case 2:
+        return b < a ? b : a;
+    case 5:
+        return a > b;
+    case 6:
+        return a < b;
+    case 7:
+        return a == b;
+    default:
+        assert(false && "Unknown typeId");
+    }
+}
+
+// Returns consumed bits.
+static int decode(int n, const uint8_t bits[n], int *versionSum, int64_t *value) {
     if (n < 6) {
-        return n;
+        assert(false && "Not enough bits for a valid packet");
     }
 
-    printf("\n");
-    for (int i = 0; i < n; ++i) {
-        printf("%d", bits[i]);
-    }
-    printf("\n");
+    *versionSum += (bits[0] << 2) |
+                   (bits[1] << 1) |
+                   bits[2];
 
-    uint8_t version = (bits[0] << 2) | (bits[1] << 1) | bits[2]; // First three bits encode the packet version
-    uint8_t typeId = (bits[3] << 2) | (bits[4] << 1) | bits[5];  // The next three bits encode the packet type ID
+    uint8_t typeId = (bits[3] << 2) |
+                     (bits[4] << 1) |
+                     bits[5];
 
-    *versionSum += version;
-
-    printf("version: %d\n", version);
-    printf("typeId: %d\n", typeId);
-
-    int b = 6;
+    int bitIndex = 6;
 
     if (typeId == 4) {
-        // Literal value packets encode a single binary number.
-        // To do this, the binary number is padded with leading zeroes until its length is a multiple of four bits,
-        // and then it is broken into groups of four bits.
-        // Each group is prefixed by a 1 bit except the last group, which is prefixed by a 0 bit.
-        // bool moreGroups = bits[b++];
+        *value = 0;
 
-        int binaryNumber = 0;
-
-        for (bool moreGroups = true; moreGroups; moreGroups = bits[b], b += 5) {
-            int group = (bits[b + 1] << 3) | (bits[b + 2] << 2) | (bits[b + 3] << 1) | (bits[b + 4]);
-
-            binaryNumber <<= 4;
-            binaryNumber |= group;
-
-            printf("group: %d\n", group);
+        for (bool more = true; more; more = bits[bitIndex], bitIndex += 5) {
+            *value <<= 4;
+            *value |= (bits[bitIndex + 1] << 3) |
+                      (bits[bitIndex + 2] << 2) |
+                      (bits[bitIndex + 3] << 1) |
+                      (bits[bitIndex + 4]);
         }
 
-        printf("Binary number: %d (b: %d)\n", binaryNumber, b);
-
-        return b;
+        return bitIndex;
     } else {
-        uint8_t lengthType = bits[b++];
-
-        printf("lengthType: %d\n", lengthType);
+        uint8_t lengthType = bits[bitIndex++];
 
         if (lengthType == 0) {
-            // length is a 15-bit number representing the number of bits in the sub-packets.
             int16_t length = 0;
+
             for (int i = 0; i < 15; ++i) {
                 length <<= 1;
-                length |= bits[b++];
+                length |= bits[bitIndex++];
             }
 
-            do {
-                int consumed = partOne(length, bits + b, versionSum);
-                b += consumed;
-                length -= consumed;
-                printf("Consumed: %d\n", consumed);
-            } while (length > 0);
+            int consumed = decode(length, bits + bitIndex, versionSum, value);
+            bitIndex += consumed;
+            length -= consumed;
 
-            return b;
+            int64_t subValue = 0;
+
+            while (length > 0) {
+                consumed = decode(length, bits + bitIndex, versionSum, &subValue);
+                bitIndex += consumed;
+                length -= consumed;
+
+                *value = performOperation(typeId, *value, subValue);
+            };
+
+            return bitIndex;
         } else {
-            // length is a 15-bit number representing the number of bits in the sub-packets.
             int16_t nSubPackets = 0;
+
             for (int i = 0; i < 11; ++i) {
                 nSubPackets <<= 1;
-                nSubPackets |= bits[b++];
+                nSubPackets |= bits[bitIndex++];
             }
 
-            printf("nSubPackets: %d\n", nSubPackets);
+            assert(nSubPackets > 0);
 
-            for (int i = 0; i < nSubPackets; ++i) {
-                int consumed = partOne(n - b, bits + b, versionSum);
-                b += consumed;
+            bitIndex += decode(n - bitIndex, bits + bitIndex, versionSum, value);
+
+            int64_t subValue = 0;
+
+            for (int i = 1; i < nSubPackets; ++i) {
+                bitIndex += decode(n - bitIndex, bits + bitIndex, versionSum, &subValue);
+
+                *value = performOperation(typeId, *value, subValue);
             }
 
-            return b;
+            return bitIndex;
         }
     }
 }
 
-static int partTwo(int n, const uint8_t bits[CAP]) {
-    return -1;
+static int64_t partOne(int n, const uint8_t bits[CAP]) {
+    int versionSum = 0;
+    int64_t value = 0;
+
+    decode(n, bits, &versionSum, &value);
+
+    return versionSum;
+}
+
+static int64_t partTwo(int n, const uint8_t bits[CAP]) {
+    int versionSum = 0;
+    int64_t value = 0;
+
+    decode(n, bits, &versionSum, &value);
+
+    return value;
 }
 
 int main() {
@@ -118,19 +149,13 @@ int main() {
     uint8_t bits[CAP] = {0};
     int n = parse(input, bits);
 
-    int versionSum = 0;
+    Helpers_assert(PART1, Helpers_clock(),
+                   partOne(n, bits),
+                   20, 945);
 
-    // Helpers_assert(PART1, Helpers_clock(),
-    //                partOne(n, bits, &versionSum),
-    //                31, 945);
-
-    partOne(n, bits, &versionSum);
-
-    printf("versionSum: %d\n", versionSum);
-
-    // Helpers_assert(PART2, Helpers_clock(),
-    //                partTwo(n, xs),
-    //                -1, -2);
+    Helpers_assert(PART2, Helpers_clock(),
+                   partTwo(n, bits),
+                   1, 10637009915279);
 
     return 0;
 }
