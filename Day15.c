@@ -1,11 +1,84 @@
 #include "Helpers.c"
 
-#define OPEN_CAP 2000
+#define BIN_HEAP_CAP 2000
 
 typedef struct {
     uint16_t y;
     uint16_t x;
 } Coord;
+
+// Inspired by https://www.geeksforgeeks.org/binary-heap/.
+// This version gets away by using 32 bits for the prio and another 32 bits for any user data.
+typedef struct {
+    uint64_t heap[BIN_HEAP_CAP];
+    int n;
+} PrioQueue;
+
+static void PrioQueue_enqueue(uint32_t prio, uint32_t payload, PrioQueue *queue) {
+    assert(queue->n <= BIN_HEAP_CAP);
+
+    int i = queue->n++;
+    queue->heap[i] = ((uint64_t)payload << 32) | prio;
+
+    if (i == 0) {
+        return;
+    }
+
+    int parent = (i - 1) / 2; // parent index relative i.
+
+    // Bubble up until min property is held.
+    while ((queue->heap[i] & 0xffffffff) < (queue->heap[parent] & 0xffffffff)) {
+        // Swap values with parent and child.
+        uint64_t tmp = queue->heap[parent];
+        queue->heap[parent] = queue->heap[i];
+        queue->heap[i] = tmp;
+
+        i = parent;           // Move up one level.
+        parent = (i - 1) / 2; // Next parent.
+    }
+}
+
+static uint32_t PrioQueue_dequeue(PrioQueue *queue) {
+    if (queue->n <= 0) {
+        return UINT32_MAX;
+    } else if (queue->n == 1) {
+        return queue->heap[--queue->n] >> 32;
+    }
+
+    uint32_t payload = queue->heap[0] >> 32;
+
+    queue->heap[0] = queue->heap[--queue->n];
+
+    // Ensure min property is held.
+    int i = 0;
+
+    for (;;) {
+        int l = (2 * i) + 1; // Left child index of i.
+        int r = (2 * i) + 2; // Right child index of i.
+        int smallest = i;
+
+        if (l < queue->n && (queue->heap[l] & 0xffffffff) < (queue->heap[i] & 0xffffffff)) {
+            smallest = l;
+        }
+
+        if (r < queue->n && (queue->heap[r] & 0xffffffff) < (queue->heap[smallest] & 0xffffffff)) {
+            smallest = r;
+        }
+
+        if (smallest == i) {
+            break;
+        }
+
+        // Swap smallest with i.
+        uint64_t tmp = queue->heap[smallest];
+        queue->heap[smallest] = queue->heap[i];
+        queue->heap[i] = tmp;
+
+        i = smallest; // Check next.
+    }
+
+    return payload;
+}
 
 static int parseSize(const char *input) {
     const char *inputFirstLine = input;
@@ -35,6 +108,10 @@ static void parseMap(const char *input, int n, uint8_t map[n][n]) {
 // Inspired from https://en.wikipedia.org/wiki/A*_search_algorithm,
 // h(n) is the Manhattan distance to bottom-right (n - 1, n - 1)
 static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
+    // List of open nodes that may be revisited.
+    PrioQueue nodeByLowestPrio;
+    nodeByLowestPrio.n = 0;
+
     // Cost of the shortest path from start to node n currently known.
     uint32_t gScore[n][n];
     memset(gScore, UINT32_MAX, n * n * sizeof(gScore[0][0])); // Fill with "infinity".
@@ -43,46 +120,24 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
     uint32_t fScore[n][n];
     memset(fScore, UINT32_MAX, n * n * sizeof(fScore[0][0])); // Fill with "infinity".
 
-    // List of open nodes that may be revisited.
-    Coord open[OPEN_CAP] = {0};
-
-    // Insert start node (0,0).
-    int nOpen = 1;
-    open[0] = (Coord){.y = 0, .x = 0};
-
     // Set initial score to 0 at (0, 0)
     gScore[0][0] = 0;
 
     // Best case scenario from (0, 0) to (n - 1, n - 1).
     fScore[0][0] = (n - 1 - 0) + (n - 1 - 0); // h((0,0))
 
+    // Insert start node.
+    PrioQueue_enqueue(fScore[0][0], (0 << 16) | 0, &nodeByLowestPrio);
+
     for (;;) {
-        assert(nOpen > 0 && "Can't find any open nodes :/");
-
-        // Find the open node with smallest fScore value. O(n).
-        int iOpen = 0;
-        uint32_t minFScore = fScore[open[0].y][open[0].x];
-
-        for (int i = 1; i < nOpen; ++i) {
-            if (fScore[open[i].y][open[i].x] < minFScore) {
-                minFScore = fScore[open[i].y][open[i].x];
-                iOpen = i;
-            }
-        }
-
-        uint16_t cy = open[iOpen].y;
-        uint16_t cx = open[iOpen].x;
+        uint32_t cyAndCx = PrioQueue_dequeue(&nodeByLowestPrio); // O(log n).
+        uint16_t cy = cyAndCx >> 16;
+        uint16_t cx = cyAndCx & 0xffff;
 
         // If we've reached the goal, (n - 1, n - 1), return our gScore.
         if (cx == n - 1 && cy == n - 1) {
             return gScore[n - 1][n - 1];
         }
-
-        // Remove current node from our open list as we have discovered it now. O(n).
-        for (int i = iOpen; i < nOpen - 1; ++i) {
-            open[i] = open[i + 1];
-        }
-        --nOpen;
 
         // Neighbor nodes to current node.
         uint16_t neigh[4][2] = {
@@ -105,9 +160,8 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
                     gScore[ny][nx] = tentativeGScore;
                     fScore[ny][nx] = tentativeGScore + ((n - 1 - ny) + (n - 1 - nx));
 
-                    // Insert neighbor node. O(1).
-                    open[nOpen++] = (Coord){.y = ny, .x = nx};
-                    assert(nOpen < OPEN_CAP);
+                    // Insert neighbor node. O(log n).
+                    PrioQueue_enqueue(fScore[ny][nx], (ny << 16) | nx, &nodeByLowestPrio);
                 }
             }
         }
