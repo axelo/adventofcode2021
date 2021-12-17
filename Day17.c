@@ -18,6 +18,8 @@ static Area parse(const char *input) {
 
     assert(sscanf(input, "target area: x=%d..%d, y=%d..%d", &area.x1, &area.x2, &area.y1, &area.y2) == 4);
 
+    assert(area.x1 > 0 && area.x2 > 0);
+
     return area;
 }
 
@@ -25,7 +27,7 @@ static LaunchResult launchProbe(Area target) {
     LaunchResult result = {0};
 
     int vxLowerBound = 0;
-    int vxUpperBound = abs(target.x1) + abs(target.x2);
+    int vxUpperBound = target.x1 + target.x2;
     int vyLowerBound = -(abs(target.y1) + abs(target.y2));
     int vyUpperBound = abs(target.y1) + abs(target.y2);
 
