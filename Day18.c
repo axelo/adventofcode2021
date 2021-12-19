@@ -1,7 +1,8 @@
 #include "Helpers.c"
 
 #define NUMBERS_CAP 100
-#define NODES_CAP 30000
+#define NODES_CAP 2000
+#define NODES_REUSE_CAP 16 // Must be a power of 2.
 
 typedef struct {
     uint16_t parent;
@@ -13,6 +14,8 @@ typedef struct {
 typedef struct {
     int n;
     Node ns[NODES_CAP];
+    int nReuse;
+    int reuse[NODES_REUSE_CAP];
 } Nodes;
 
 static int parse(const char *input, Nodes *nodes, int numbers[NUMBERS_CAP]) {
@@ -73,8 +76,26 @@ static int parse(const char *input, Nodes *nodes, int numbers[NUMBERS_CAP]) {
     return nNumbers;
 }
 
+static inline int emptyNodeIndex(Nodes *nodes) {
+    int i = (nodes->nReuse - 1) & (NODES_REUSE_CAP - 1);
+    int j = nodes->reuse[i];
+
+    if (j) {
+        nodes->reuse[i] = -1;
+        nodes->nReuse = i;
+        return j;
+    } else {
+        return nodes->n++;
+    }
+}
+
+static inline void markReusableNodeIndex(int i, Nodes *nodes) {
+    nodes->reuse[nodes->nReuse] = i;
+    nodes->nReuse = (nodes->nReuse + 1) & (NODES_REUSE_CAP - 1);
+}
+
 static int addition(int ia, int ib, Nodes *nodes) {
-    int root = nodes->n++;
+    int root = emptyNodeIndex(nodes);
 
     nodes->ns[root].parent = 0;
     nodes->ns[root].left = ia;
@@ -172,6 +193,9 @@ static bool explode(int i, Nodes *nodes) {
             nodes->ns[leftMostNumberNode].value += nodes->ns[nodes->ns[j].right].value;
         }
 
+        markReusableNodeIndex(nodes->ns[j].left, nodes);
+        markReusableNodeIndex(nodes->ns[j].right, nodes);
+
         nodes->ns[j].left = 0;
         nodes->ns[j].right = 0;
         nodes->ns[j].value = 0;
@@ -196,13 +220,13 @@ static bool split(int i, Nodes *nodes) {
     int j = findNodeToSplit(i, nodes);
 
     if (j != -1) {
-        int left = nodes->n++;
+        int left = emptyNodeIndex(nodes);
         nodes->ns[left].parent = j;
         nodes->ns[left].value = nodes->ns[j].value / 2;
 
         assert(nodes->n < NODES_CAP);
 
-        int right = nodes->n++;
+        int right = emptyNodeIndex(nodes);
         nodes->ns[right].parent = j;
         nodes->ns[right].value = ((float)nodes->ns[j].value / 2) + 0.5;
 
@@ -248,7 +272,7 @@ static void dump(int i, const Nodes *nodes) {
 
 static int partOne(const Nodes *nodes, int n, int numbers[n]) {
     Nodes ns;
-    memcpy(&ns, nodes, sizeof(nodes->n) + nodes->n * sizeof(nodes->ns[0]));
+    memcpy(&ns, nodes, sizeof(Nodes));
 
     int number = numbers[0];
 
@@ -263,7 +287,6 @@ static int partOne(const Nodes *nodes, int n, int numbers[n]) {
 }
 
 static int partTwo(const Nodes *nodes, int n, int numbers[n]) {
-    int nsSize = (sizeof(Nodes) / NODES_CAP + 1) * nodes->n;
     Nodes ns;
 
     int largestMagnitude = INT_MIN;
@@ -271,7 +294,7 @@ static int partTwo(const Nodes *nodes, int n, int numbers[n]) {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             if (i != j) {
-                memcpy(&ns, nodes, nsSize);
+                memcpy(&ns, nodes, sizeof(Nodes));
 
                 int number = addition(numbers[i], numbers[j], &ns);
                 reduce(number, &ns);
