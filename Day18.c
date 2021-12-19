@@ -3,6 +3,8 @@
 #define CAP 100
 #define NODES_CAP 30000
 
+// TODO: Use index pointers instead of pointers.
+
 typedef struct NodeType {
     int value;
     struct NodeType *left;
@@ -13,6 +15,7 @@ typedef struct NodeType {
 
 Node nodes[NODES_CAP] = {0};
 int n = 0;
+int nRemoved = 0;
 
 static int parse(const char *input, Node *numbers[CAP]) {
     int nNumbers = 0;
@@ -21,7 +24,6 @@ static int parse(const char *input, Node *numbers[CAP]) {
     memset(nodes, 0, sizeof(nodes));
 
     while (*input != 0) {
-        // printf("Parsing number %d\n", nNumbers);
         assert(nNumbers < CAP);
 
         Node *p = &nodes[n++];
@@ -56,9 +58,7 @@ static int parse(const char *input, Node *numbers[CAP]) {
                 }
 
                 p = p->parent;
-
             } else if (c == ',') {
-
                 assert(p->right == NULL && "Right already occupied");
 
                 nodes[n].parent = p;
@@ -66,7 +66,6 @@ static int parse(const char *input, Node *numbers[CAP]) {
                 p = p->right;
                 p->id = n - 1;
                 p->value = -1;
-
             } else if (c == ']') {
                 assert(p->left != NULL && p->right != NULL && "Missing pair");
                 p = p->parent;
@@ -255,6 +254,8 @@ static bool explode(Node *root) {
     c->right = NULL;
     c->value = 0;
 
+    nRemoved += 2;
+
     return true;
 }
 
@@ -333,29 +334,16 @@ static bool split(Node *node) {
 }
 
 static void reduce(Node *number) {
-    bool retry = true;
-    while (retry) {
-        retry = false;
-
+    do {
         while (explode(number)) {
-            retry = true;
-            // printf("exploded\n");
-            // dump(number, 0);
         }
-
-        if (split(number)) {
-            retry = true;
-            // printf("splitted\n");
-            // dump(number, 0);
-        }
-    }
+    } while (split(number));
 }
 
 static int magnitude(const Node *node) {
-    if (node->left == NULL || node->right == NULL) {
-        return node->value;
-    }
-    return 3 * magnitude(node->left) + 2 * magnitude(node->right);
+    return node->left == NULL || node->right == NULL
+               ? node->value
+               : 3 * magnitude(node->left) + 2 * magnitude(node->right);
 }
 
 static void dump(const Node *node, int level) {
@@ -384,13 +372,11 @@ static int partOne(int nNumbers, Node *numbers[CAP]) {
         reduce(number);
     }
 
-    printf("reduced\n");
     dump(number, 0);
-    // [[[[6,7],[6,8]],[[0,7],[0,7]]],[[5,5],9]]
 
     int m = magnitude(number);
 
-    printf("magnitude: %d, nodes: %d\n", magnitude(number), n);
+    printf("nodes: %d, nodes removed: %d\n", n, nRemoved);
 
     return m;
 }
