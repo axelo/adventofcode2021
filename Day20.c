@@ -66,12 +66,11 @@ static void enhance(const bool algorithm[512], int inSize, const bool inputImage
     for (inSize += 2; inSize < outSize; inSize += 2) {
         memcpy(input, output, sizeBytes);
 
-        infinityBit = infinityBit ? algorithm[511] : algorithm[0]; // 0b111111111 = 511
+        infinityBit = infinityBit ? algorithm[511] : algorithm[0]; // 0b111111111 = 511, 0b000000000 = 0.
 
         for (int y = 0; y < inSize + 2; ++y) {
             for (int x = 0; x < inSize + 2; ++x) {
                 int index = indexFromInput(x - 1, y - 1, inSize, outSize, input, infinityBit);
-
                 output[y][x] = algorithm[index];
             }
         }
@@ -99,8 +98,7 @@ static int sizeAfterPasses(int n, int passes) {
 }
 
 static int partOne(const bool algorithm[512], int n, const bool inputImage[n][n]) {
-    int passes = 2;
-    int size = sizeAfterPasses(n, passes);
+    int size = sizeAfterPasses(n, 2);
     bool outputImage[size][size];
 
     enhance(algorithm, n, inputImage, size, outputImage);
@@ -109,8 +107,7 @@ static int partOne(const bool algorithm[512], int n, const bool inputImage[n][n]
 }
 
 static int partTwo(const bool algorithm[512], int n, const bool inputImage[n][n]) {
-    int passes = 50;
-    int size = sizeAfterPasses(n, passes);
+    int size = sizeAfterPasses(n, 50);
     bool outputImage[size][size];
     enhance(algorithm, n, inputImage, size, outputImage);
 
