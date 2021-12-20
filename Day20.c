@@ -46,6 +46,8 @@ static int indexFromInput(int sx, int sy, int inSize, int size, const bool input
 }
 
 static void enhance(const bool algorithm[512], int inSize, const bool inputImage[inSize][inSize], int outSize, bool outputImage[outSize][outSize]) {
+    assert(outSize > inSize);
+
     int sizeBytes = sizeof(bool) * outSize * outSize;
 
     bool input[outSize][outSize];
