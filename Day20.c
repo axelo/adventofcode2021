@@ -1,44 +1,42 @@
 #include "Helpers.c"
 
 static int parseAlgorithm(const char *input, bool algorithm[512]) {
-    char s[513] = {0};
-    char s2[101] = {0};
+    char algoString[513] = {0};
+    char firstInputRow[101] = {0};
     int charsRead = 0;
 
-    assert(sscanf(input, "%512s\n\n%100s\n%n", s, s2, &charsRead) == 2);
-
-    int size = strlen(s2);
+    assert(sscanf(input, "%512s\n\n%100s\n%n", algoString, firstInputRow, &charsRead) == 2);
 
     for (int i = 0; i < 512; ++i) {
-        algorithm[i] = s[i] == '#';
+        algorithm[i] = algoString[i] == '#';
     }
 
-    return size;
+    return strlen(firstInputRow);
 }
 
 static void parseInputImage(const char *input, int n, bool image[n][n]) {
-    input += 512 + 2;
+    input += 512 + 2; // Assume two new lines.
 
-    char s[101] = {0};
+    char row[101] = {0};
     int charsRead = 0;
 
     for (int y = 0; y < n; ++y) {
-        assert(sscanf(input, "%100s\n%n", s, &charsRead) == 1);
+        assert(sscanf(input, "%100s\n%n", row, &charsRead) == 1);
         input += charsRead;
 
         for (int x = 0; x < n; ++x) {
-            image[y][x] = s[x] == '#' ? 1 : 0;
+            image[y][x] = row[x] == '#' ? 1 : 0;
         }
     }
 }
 
-static int indexFromInput(int sx, int sy, int n, int m, const bool inputImage[m][m], bool infinityBit) {
+static int indexFromInput(int sx, int sy, int inSize, int size, const bool inputImage[size][size], bool infinityBit) {
     int index = 0;
 
     for (int y = sy - 1; y <= sy + 1; ++y) {
         for (int x = sx - 1; x <= sx + 1; ++x) {
             index <<= 1;
-            index |= (x >= 0 && y >= 0 && x < n && y < n)
+            index |= (x >= 0 && y >= 0 && x < inSize && y < inSize)
                          ? inputImage[y][x]
                          : infinityBit;
         }
