@@ -10,7 +10,7 @@ static void parse(const char *input, int *startP1, int *startP2) {
 }
 
 static int partOne(int start1, int start2) {
-    int pos1 = start1 - 1;
+    int pos1 = start1 - 1; // Translate from 1...10 to 0..9.
     int pos2 = start2 - 1;
     int score1 = 0;
     int score2 = 0;
