@@ -38,7 +38,7 @@ typedef struct {
 #define INDEX_CAP 16384
 
 static int64_t notFoundCache[14][INDEX_CAP][NOT_FOUND_CAP];
-static int nNotFoundCache[14][INDEX_CAP] = {0};
+static int nNotFoundCache[14][INDEX_CAP];
 
 static Var varFromChar(char c) {
     switch (c) {
@@ -219,10 +219,12 @@ static int64_t findSmallestMonad(const Instruction programs[14][CAP], int64_t in
 }
 
 static int64_t partOne(const Instruction programs[14][CAP]) {
+    memset(nNotFoundCache, 0, sizeof(nNotFoundCache));
     return findLargestMonad(programs, 0, 0, 0);
 }
 
 static int64_t partTwo(const Instruction programs[14][CAP]) {
+    memset(nNotFoundCache, 0, sizeof(nNotFoundCache));
     return findSmallestMonad(programs, 0, 0, 0);
 }
 
