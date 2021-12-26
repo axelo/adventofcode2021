@@ -54,7 +54,7 @@ static void dump(Size size, const Herd map[150][150]) {
     printf("\n");
 }
 
-static bool step(Size size, const Herd input[150][150], Herd output[150][150]) {
+static void step(Size size, const Herd input[150][150], Herd output[150][150]) {
     memset(output, None, 150 * 150 * sizeof(Herd));
 
     for (int y = 0; y < size.h; ++y) {
@@ -84,16 +84,6 @@ static bool step(Size size, const Herd input[150][150], Herd output[150][150]) {
             }
         }
     }
-
-    for (int y = 0; y < size.h; ++y) {
-        for (int x = 0; x < size.w; ++x) {
-            if (input[y][x] != output[y][x]) {
-                return false;
-            }
-        }
-    }
-
-    return false;
 }
 
 static bool equal(Size size, const Herd a[150][150], const Herd b[150][150]) {
