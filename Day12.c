@@ -18,8 +18,8 @@ static CaveId idFromString(const char *s) {
     switch (strnlen(s, 6)) {
     case 5: return START_CAVE_ID;
     case 3: return END_CAVE_ID;
-    case 2: return (s[0] << 8) | s[1];
-    case 1: return (s[0] << 8) | s[0];
+    case 2: return (CaveId)((s[0] << 8) | s[1]);
+    case 1: return (CaveId)((s[0] << 8) | s[0]);
     default: assert(false);
     }
 }

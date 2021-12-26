@@ -1,8 +1,8 @@
 #include "Helpers.c"
 
 typedef struct {
-    uint64_t p1;
-    uint64_t p2;
+    int64_t p1;
+    int64_t p2;
 } Wins;
 
 static void parse(const char *input, int *startP1, int *startP2) {
@@ -54,7 +54,7 @@ static int partOne(int start1, int start2) {
     return (score1 > score2 ? score2 : score1) * rolls;
 }
 
-static Wins playWithDirac(const int diceSumFreq[10], uint8_t score1, uint8_t score2, bool isP1Turn, uint8_t pos1, uint8_t pos2, Wins cachedWins[31][31][2][10][10]) {
+static Wins playWithDirac(const uint16_t diceSumFreq[10], uint8_t score1, uint8_t score2, bool isP1Turn, uint8_t pos1, uint8_t pos2, Wins cachedWins[31][31][2][10][10]) {
     Wins cached = cachedWins[score1][score2][isP1Turn][pos1][pos2];
 
     if (cached.p1 > 0 || cached.p2 > 0) {
@@ -73,12 +73,12 @@ static Wins playWithDirac(const int diceSumFreq[10], uint8_t score1, uint8_t sco
                 int newPos1 = (pos1 + diceSum) % 10;
                 int newScore1 = score1 + newPos1 + 1;
 
-                universeWins = playWithDirac(diceSumFreq, newScore1, score2, false, newPos1, pos2, cachedWins);
+                universeWins = playWithDirac(diceSumFreq, (uint8_t)newScore1, score2, false, (uint8_t)newPos1, pos2, cachedWins);
             } else {
                 int newPos2 = (pos2 + diceSum) % 10;
                 int newScore2 = score2 + newPos2 + 1;
 
-                universeWins = playWithDirac(diceSumFreq, score1, newScore2, true, pos1, newPos2, cachedWins);
+                universeWins = playWithDirac(diceSumFreq, score1, (uint8_t)newScore2, true, pos1, (uint8_t)newPos2, cachedWins);
             }
 
             totalWins.p1 += universeWins.p1 * diceSumFreq[diceSum];
@@ -92,8 +92,8 @@ static Wins playWithDirac(const int diceSumFreq[10], uint8_t score1, uint8_t sco
     }
 }
 
-static uint64_t partTwo(int startPos1, int startPos2) {
-    int diracDiceSumFreq[10] = {0};
+static int64_t partTwo(int startPos1, int startPos2) {
+    uint16_t diracDiceSumFreq[10] = {0};
 
     for (int d1 = 1; d1 <= 3; ++d1) {
         for (int d2 = 1; d2 <= 3; ++d2) {
@@ -106,7 +106,7 @@ static uint64_t partTwo(int startPos1, int startPos2) {
     Wins cachedWins[31][31][2][10][10] = {0};
 
     // startPos is assumed 1..10, translate to 0..9.
-    Wins totalWins = playWithDirac(diracDiceSumFreq, 0, 0, true, startPos1 - 1, startPos2 - 1, cachedWins);
+    Wins totalWins = playWithDirac(diracDiceSumFreq, 0, 0, true, (uint8_t)(startPos1 - 1), (uint8_t)(startPos2 - 1), cachedWins);
 
     return totalWins.p1 > totalWins.p2
                ? totalWins.p1

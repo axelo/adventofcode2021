@@ -24,7 +24,7 @@ static int parse(const char *input, int diags[CAP]) {
 
         input += charsRead;
 
-        diags[n++] = strtoimax(diagString, NULL, 2);
+        diags[n++] = (int)strtoimax(diagString, NULL, 2);
 
         assert(n < CAP);
     }
@@ -58,7 +58,7 @@ static int partTwoRating(int n, const int diags[n], Rating rating) {
     int filtered[n];
     int filteredCount = n;
 
-    memcpy(filtered, diags, sizeof(*diags) * n);
+    memcpy(filtered, diags, sizeof(*diags) * (uint32_t)n);
 
     int bitMask = 1 << (BIT_WIDTH - 1);
 

@@ -23,7 +23,7 @@ static Dim parse(const char *input, uint8_t heightmap[CAP][CAP]) {
             int height = c - 48;
             assert(height >= 0 && height <= 9);
 
-            heightmap[dim.h][x++] = height;
+            heightmap[dim.h][x++] = (uint8_t)height;
             assert(x < CAP);
         }
 

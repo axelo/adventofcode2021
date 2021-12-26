@@ -3,7 +3,7 @@
 #define CAP 10000
 
 static int parse(const char *input, uint8_t bits[CAP]) {
-    int nInput = strlen(input);
+    int nInput = (int)strlen(input);
 
     int n = 0;
 
@@ -12,7 +12,7 @@ static int parse(const char *input, uint8_t bits[CAP]) {
             break;
         }
 
-        uint8_t nibble = input[i] > '9' ? input[i] - 'A' + 10 : input[i] - '0';
+        uint8_t nibble = (uint8_t)(input[i] > '9' ? input[i] - 'A' + 10 : input[i] - '0');
         assert(nibble >= 0 && nibble <= 15);
 
         for (int j = 3; j >= 0; --j) {
@@ -45,9 +45,9 @@ static int decode(int nBits, const uint8_t bits[nBits], int *versionSum, int64_t
                    (bits[1] << 1) |
                    bits[2];
 
-    uint8_t typeId = (bits[3] << 2) |
-                     (bits[4] << 1) |
-                     bits[5];
+    uint8_t typeId = (uint8_t)((bits[3] << 2) |
+                               (bits[4] << 1) |
+                               bits[5]);
 
     int bitIndex = 6;
 

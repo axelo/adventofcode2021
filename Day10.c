@@ -75,7 +75,7 @@ static void validateSyntax(const char *line, SyntaxResult *result) {
                 --result->nOpen;
                 break;
             } else {
-                result->position = line - lineBegin;
+                result->position = (int)(line - lineBegin);
                 return;
             }
         }
@@ -124,7 +124,7 @@ static int64_t partTwo(int n, const char lines[n][SYNTAX_CAP]) {
         }
     }
 
-    qsort(scores, nScores, sizeof(scores[0]), compareInt64); // O(n * log n)
+    qsort(scores, (uint32_t)nScores, sizeof(scores[0]), compareInt64); // O(n * log n)
 
     return scores[nScores / 2];
 }
