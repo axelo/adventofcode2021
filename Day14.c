@@ -27,7 +27,7 @@ static int parse(const char *input, uint8_t template[TEMPLATE_CAP], uint8_t rule
 static int64_t pairFromTemplate(int n, const uint8_t template[n], const uint8_t rules[26][26], int steps) {
     // Allocate stack memory for all possible pair combinations for all steps.
     int64_t pairsByStep[steps + 1][26][26];
-    memset(pairsByStep, 0, sizeof(int64_t) * 26 * 26 * (steps + 1));
+    memset(pairsByStep, 0, sizeof(int64_t) * 26 * 26 * (uint32_t)(steps + 1));
 
     // Insert initial pairs from template into step 0.
     for (int i = 0; i < n - 1; ++i) {

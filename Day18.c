@@ -12,17 +12,17 @@ typedef struct {
 } Node;
 
 typedef struct {
-    int n;
+    uint16_t n;
     Node ns[NODES_CAP];
-    int nReuse;
+    uint16_t nReuse;
     int reuse[NODES_REUSE_CAP];
 } Nodes;
 
-static int parse(const char *input, Nodes *nodes, int numbers[NUMBERS_CAP]) {
+static int parse(const char *input, Nodes *nodes, uint16_t numbers[NUMBERS_CAP]) {
     int nNumbers = 0;
     nodes->n = 1;
 
-    int current = nodes->n;
+    uint16_t current = nodes->n;
 
     while (*input != 0) {
         numbers[nNumbers++] = nodes->n;
@@ -40,20 +40,20 @@ static int parse(const char *input, Nodes *nodes, int numbers[NUMBERS_CAP]) {
             if (c == '[') {
                 assert(nodes->ns[current].left == 0 && "Left already occupied");
 
-                int left = nodes->n++;
+                uint16_t left = nodes->n++;
                 nodes->ns[left].parent = current;
 
                 nodes->ns[current].left = left;
 
                 current = left;
             } else if (c >= '0' && c <= '9') {
-                nodes->ns[current].value = c - '0';
+                nodes->ns[current].value = (uint16_t)(c - '0');
 
                 current = nodes->ns[current].parent;
             } else if (c == ',') {
                 assert(nodes->ns[current].right == 0 && "Right already occupied");
 
-                int right = nodes->n++;
+                uint16_t right = nodes->n++;
                 nodes->ns[right].parent = current;
 
                 nodes->ns[current].right = right;
@@ -76,14 +76,14 @@ static int parse(const char *input, Nodes *nodes, int numbers[NUMBERS_CAP]) {
     return nNumbers;
 }
 
-static inline int emptyNodeIndex(Nodes *nodes) {
-    int i = (nodes->nReuse - 1) & (NODES_REUSE_CAP - 1);
+static inline uint16_t emptyNodeIndex(Nodes *nodes) {
+    uint16_t i = (nodes->nReuse - 1) & (NODES_REUSE_CAP - 1);
     int j = nodes->reuse[i];
 
     if (j) {
         nodes->reuse[i] = -1;
         nodes->nReuse = i;
-        return j;
+        return (uint16_t)j;
     } else {
         return nodes->n++;
     }
@@ -94,8 +94,8 @@ static inline void markReusableNodeIndex(int i, Nodes *nodes) {
     nodes->nReuse = (nodes->nReuse + 1) & (NODES_REUSE_CAP - 1);
 }
 
-static int addition(int ia, int ib, Nodes *nodes) {
-    int root = emptyNodeIndex(nodes);
+static uint16_t addition(uint16_t ia, uint16_t ib, Nodes *nodes) {
+    uint16_t root = emptyNodeIndex(nodes);
 
     nodes->ns[root].parent = 0;
     nodes->ns[root].left = ia;
@@ -220,15 +220,15 @@ static bool split(int i, Nodes *nodes) {
     int j = findNodeToSplit(i, nodes);
 
     if (j != -1) {
-        int left = emptyNodeIndex(nodes);
-        nodes->ns[left].parent = j;
+        uint16_t left = emptyNodeIndex(nodes);
+        nodes->ns[left].parent = (uint16_t)j;
         nodes->ns[left].value = nodes->ns[j].value / 2;
 
         assert(nodes->n < NODES_CAP);
 
-        int right = emptyNodeIndex(nodes);
-        nodes->ns[right].parent = j;
-        nodes->ns[right].value = ((float)nodes->ns[j].value / 2) + 0.5;
+        uint16_t right = emptyNodeIndex(nodes);
+        nodes->ns[right].parent = (uint16_t)j;
+        nodes->ns[right].value = (uint16_t)(((float)nodes->ns[j].value / 2) + 0.5);
 
         assert(nodes->n < NODES_CAP);
 
@@ -270,11 +270,11 @@ static void dump(int i, const Nodes *nodes) {
     }
 }
 
-static int partOne(const Nodes *nodes, int n, int numbers[n]) {
+static int partOne(const Nodes *nodes, int n, uint16_t numbers[n]) {
     Nodes ns;
     memcpy(&ns, nodes, sizeof(Nodes));
 
-    int number = numbers[0];
+    uint16_t number = numbers[0];
 
     for (int i = 1; i < n; ++i) {
         number = addition(number, numbers[i], &ns);
@@ -286,7 +286,7 @@ static int partOne(const Nodes *nodes, int n, int numbers[n]) {
     return magnitude(number, &ns);
 }
 
-static int partTwo(const Nodes *nodes, int n, int numbers[n]) {
+static int partTwo(const Nodes *nodes, int n, uint16_t numbers[n]) {
     Nodes ns;
 
     int largestMagnitude = INT_MIN;
@@ -296,7 +296,7 @@ static int partTwo(const Nodes *nodes, int n, int numbers[n]) {
             if (i != j) {
                 memcpy(&ns, nodes, sizeof(Nodes));
 
-                int number = addition(numbers[i], numbers[j], &ns);
+                uint16_t number = addition(numbers[i], numbers[j], &ns);
                 reduce(number, &ns);
 
                 int m = magnitude(number, &ns);
@@ -315,7 +315,7 @@ int main() {
     const char *input = Helpers_readInputFile(__FILE__);
 
     Nodes nodes = {0};
-    int numbers[NUMBERS_CAP] = {0};
+    uint16_t numbers[NUMBERS_CAP] = {0};
     int n = parse(input, &nodes, numbers);
 
     Helpers_assert(PART1, Helpers_clock(),

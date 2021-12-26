@@ -3,7 +3,7 @@
 #define CAP 4096
 
 static int parse(const char *input, int depths[CAP]) {
-    size_t n = 0;
+    int n = 0;
     int charsRead = 0;
     int filled = 0;
 

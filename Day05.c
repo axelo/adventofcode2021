@@ -96,7 +96,7 @@ static int countOverlaps(int h, int w, const int diagram[h][w]) {
 
 static int partOne(int count, const Line lines[count]) {
     Line vhLines[count];
-    memset(vhLines, 0, sizeof(Line) * count);
+    memset(vhLines, 0, sizeof(Line) * (uint32_t)count);
 
     int countVH = 0;
 
@@ -109,7 +109,7 @@ static int partOne(int count, const Line lines[count]) {
     DiagramSize size = diagramSizeFromLines(countVH, vhLines);
 
     int diagram[size.h][size.w];
-    memset(diagram, 0, size.w * size.h * sizeof(int));
+    memset(diagram, 0, (uint32_t)size.w * (uint32_t)size.h * sizeof(int));
 
     drawLines(countVH, vhLines, size.h, size.w, diagram);
 
@@ -120,7 +120,7 @@ static int partTwo(int count, const Line lines[count]) {
     DiagramSize size = diagramSizeFromLines(count, lines);
 
     int diagram[size.h][size.w];
-    memset(diagram, 0, size.w * size.h * sizeof(int));
+    memset(diagram, 0, (uint32_t)size.w * (uint32_t)size.h * sizeof(int));
 
     drawLines(count, lines, size.h, size.w, diagram);
 

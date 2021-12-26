@@ -1,5 +1,5 @@
-#ifndef _HELPERS_
-#define _HELPERS_
+#ifndef HELPERS_
+#define HELPERS_
 
 #include <assert.h>
 #include <inttypes.h> // strtoimax
@@ -48,13 +48,13 @@ static const char *Helpers_readInputFile(const char *dayFilename) {
     return Helpers_readInputFile_buffer;
 }
 
-int64_t Helpers_clock() {
+static int64_t Helpers_clock() {
     struct timespec now;
     timespec_get(&now, TIME_UTC);
     return ((int64_t)now.tv_sec) * 1000000 + ((int64_t)now.tv_nsec) / 1000;
 }
 
-void Helpers_assert(PART part, int64_t start, int64_t actual, int64_t expectedFromExample, int64_t expectedFromInput) {
+static void Helpers_assert(PART part, int64_t start, int64_t actual, int64_t expectedFromExample, int64_t expectedFromInput) {
     int64_t end = Helpers_clock();
 
     int64_t expected = Helpers_readInputFile_useExample
@@ -62,7 +62,7 @@ void Helpers_assert(PART part, int64_t start, int64_t actual, int64_t expectedFr
                            : expectedFromInput;
 
     printf("Part %d: %lld, expected %lld, took %lld us (%f s)\n", part, actual, expected,
-           end - start, (float)(end - start) / 1000000);
+           end - start, (double)(end - start) / 1000000);
 
     assert(actual == expected);
 }

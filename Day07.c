@@ -30,12 +30,12 @@ static int compareInt(const void *a, const void *b) {
 
 static int partOne(int n, const int xs[n]) {
     int sortedXs[n];
-    memcpy(sortedXs, xs, n * sizeof(xs[0]));
+    memcpy(sortedXs, xs, (uint32_t)n * sizeof(xs[0]));
 
-    qsort(sortedXs, n, sizeof(xs[0]), compareInt); // O(n * log n)
+    qsort(sortedXs, (uint32_t)n, sizeof(xs[0]), compareInt); // O(n * log n)
 
     int fuels[n];
-    memset(fuels, 0, n * sizeof(fuels[0]));
+    memset(fuels, 0, (uint32_t)n * sizeof(fuels[0]));
 
     int midpoint = sortedXs[n / 2]; // Midpoint is the median position
     int fuel = 0;

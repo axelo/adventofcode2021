@@ -87,7 +87,7 @@ static int parseSize(const char *input) {
         ++inputFirstLine;
     }
 
-    return inputFirstLine - input;
+    return (int)(inputFirstLine - input);
 }
 
 static void parseMap(const char *input, int n, uint8_t map[n][n]) {
@@ -100,7 +100,7 @@ static void parseMap(const char *input, int n, uint8_t map[n][n]) {
         input += charsRead;
 
         for (int x = 0; x < n; ++x) {
-            map[y][x] = row[x] - '0';
+            map[y][x] = (uint8_t)(row[x] - '0');
         }
     }
 }
@@ -114,17 +114,17 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
 
     // Cost of the shortest path from start to node n currently known.
     uint32_t gScore[n][n];
-    memset(gScore, UINT32_MAX, n * n * sizeof(gScore[0][0])); // Fill with "infinity".
+    memset(gScore, INT32_MAX, (uint32_t)n * (uint32_t)n * sizeof(gScore[0][0])); // Fill with "infinity".
 
     // Current best guess to how short a path from start to goal can be if it goes through node n.
     uint32_t fScore[n][n];
-    memset(fScore, UINT32_MAX, n * n * sizeof(fScore[0][0])); // Fill with "infinity".
+    memset(fScore, INT32_MAX, (uint32_t)n * (uint32_t)n * sizeof(fScore[0][0])); // Fill with "infinity".
 
     // Set initial score to 0 at (0, 0)
     gScore[0][0] = 0;
 
     // Best case scenario from (0, 0) to (n - 1, n - 1).
-    fScore[0][0] = (n - 1 - 0) + (n - 1 - 0); // h((0,0))
+    fScore[0][0] = (uint32_t)((n - 1 - 0) + (n - 1 - 0)); // h((0,0))
 
     // Insert start node.
     PrioQueue_enqueue(fScore[0][0], (0 << 16) | 0, &nodeByLowestPrio);
@@ -158,21 +158,21 @@ static uint32_t aStarSearch(int n, const uint8_t map[n][n]) {
                 if (tentativeGScore < gScore[ny][nx]) {
                     // Found a cheaper path than recorded, record this one.
                     gScore[ny][nx] = tentativeGScore;
-                    fScore[ny][nx] = tentativeGScore + ((n - 1 - ny) + (n - 1 - nx));
+                    fScore[ny][nx] = tentativeGScore + (uint32_t)((n - 1 - ny) + (n - 1 - nx));
 
                     // Insert neighbor node. O(log n).
-                    PrioQueue_enqueue(fScore[ny][nx], (ny << 16) | nx, &nodeByLowestPrio);
+                    PrioQueue_enqueue(fScore[ny][nx], (uint32_t)(ny << 16) | nx, &nodeByLowestPrio);
                 }
             }
         }
     }
 }
 
-static int partOne(int n, const uint8_t map[n][n]) {
+static uint32_t partOne(int n, const uint8_t map[n][n]) {
     return aStarSearch(n, map);
 }
 
-static int partTwo(int n, const uint8_t tile[n][n]) {
+static uint32_t partTwo(int n, const uint8_t tile[n][n]) {
     int m = n * 5;
     uint8_t map[m][m];
 

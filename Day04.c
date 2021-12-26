@@ -69,7 +69,7 @@ static void playBingo(Input *input, Bingo *bingo) {
     bool firstWin = false;
 
     bool alreadyWonBoards[input->boardsCount];
-    memset(alreadyWonBoards, false, input->boardsCount * sizeof(bool));
+    memset(alreadyWonBoards, false, (uint32_t)input->boardsCount * sizeof(bool));
 
     for (int i = 0; i < input->numbersCount; ++i) {
         int number = input->numbers[i];

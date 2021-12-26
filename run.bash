@@ -11,11 +11,17 @@ if [ "${1-}" == "all" ]; then
     do
     ./$0 Day$(printf "%02d" $i).c ${2-}
     done
+    ./$0 Day20.c ${2-}
+    ./$0 Day21.c ${2-}
+    ./$0 Day21.c ${2-}
+    ./$0 Day24.c ${2-}
+    ./$0 Day25.c ${2-}
 else
     mkdir -p ./bin
 
     # -Wpedantic Reject GNU C extensions
-    WARNINGS="-Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum -Wshadow"
+    # -Wconversion Warn for implicit conversions that may alter a value
+    WARNINGS="-Werror -Wall -Wpedantic -Wextra -Wenum-conversion -Wassign-enum -Wshadow -Wconversion"
 
     DISABLED_WARNINGS="-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function"
     DISABLED_WARNINGS=""
