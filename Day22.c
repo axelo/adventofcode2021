@@ -1,6 +1,7 @@
 #include "Helpers.c"
 
 #define CAP 500
+#define GRID_CAP 850
 
 typedef struct {
     int x1;
@@ -16,7 +17,7 @@ typedef struct {
     Cuboid cuboid;
 } Step;
 
-static bool grid[900][900][900];
+static bool grid[GRID_CAP][GRID_CAP][GRID_CAP];
 
 static int parse(const char *input, Step steps[CAP]) {
     char s[5] = {0};
@@ -101,9 +102,9 @@ static inline uint32_t find(uint32_t n, const int32_t cs[n], int32_t c) {
 
 // Inspired by https://www.youtube.com/watch?v=YKpViLcTp64, using cooridnate compression.
 static int64_t partTwo(int n, const Step steps[n]) {
-    int32_t xs[850];
-    int32_t ys[850];
-    int32_t zs[850];
+    int32_t xs[GRID_CAP];
+    int32_t ys[GRID_CAP];
+    int32_t zs[GRID_CAP];
     uint32_t m = 0;
 
     for (int i = 0; i < n; ++i) {
@@ -118,7 +119,7 @@ static int64_t partTwo(int n, const Step steps[n]) {
         ys[m] = c.y2 + 1;
         zs[m++] = c.z2 + 1;
 
-        assert(m < 850);
+        assert(m < GRID_CAP);
     }
 
     qsort(xs, m, sizeof(xs[0]), compareInt);
