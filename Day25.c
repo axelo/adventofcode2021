@@ -102,13 +102,13 @@ static int64_t partOne(Size size, const Herd map[150][150]) {
     Herd map1[150][150];
     Herd map2[150][150];
 
-    memcpy(map1, map, 150 * 150 * sizeof(Herd));
-
-    printf("Initial:\n");
-    dump(size, map);
-
     Herd(*input)[150][150] = &map1;
     Herd(*output)[150][150] = &map2;
+
+    memcpy(*input, map, 150 * 150 * sizeof(Herd));
+
+    printf("Initial:\n");
+    dump(size, *input);
 
     for (int s = 1;; ++s) {
         step(size, *input, *output);
