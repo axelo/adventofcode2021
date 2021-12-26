@@ -107,23 +107,22 @@ static int64_t partOne(Size size, const Herd map[150][150]) {
     printf("Initial:\n");
     dump(size, map);
 
-    Herd(*p1)[150][150] = &map1;
-    Herd(*p2)[150][150] = &map2;
+    Herd(*input)[150][150] = &map1;
+    Herd(*output)[150][150] = &map2;
 
     for (int s = 1;; ++s) {
-        step(size, *p1, *p2);
+        step(size, *input, *output);
 
-        if (equal(size, *p1, *p2)) {
-            printf("Nothing has changed after %d steps!\n", s);
+        if (equal(size, *input, *output)) {
             return s;
         }
 
-        if (p1 == &map1) {
-            p1 = &map2;
-            p2 = &map1;
+        if (input == &map1) { // Swap input/output.
+            input = &map2;
+            output = &map1;
         } else {
-            p1 = &map1;
-            p2 = &map2;
+            input = &map1;
+            output = &map2;
         }
     }
 
