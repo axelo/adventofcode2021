@@ -101,6 +101,7 @@ static inline uint32_t find(uint32_t n, const int32_t cs[n], int32_t c) {
 }
 
 // Inspired by https://www.youtube.com/watch?v=YKpViLcTp64, using cooridnate compression.
+// Part 1 was done before.
 static int64_t partTwo(int n, const Step steps[n]) {
     int32_t xs[GRID_CAP];
     int32_t ys[GRID_CAP];
