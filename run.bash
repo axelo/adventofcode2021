@@ -15,6 +15,7 @@ if [ "${1-}" == "all" ]; then
     ./$0 Day21.c ${2-}
     ./$0 Day21.c ${2-}
     ./$0 Day24.c ${2-}
+    ./$0 Day25.c ${2-}
 else
     mkdir -p ./bin
 
