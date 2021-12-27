@@ -152,9 +152,9 @@ static int64_t partTwo(int n, const Step steps[n]) {
 
     int64_t sumVolume = 0;
 
-    for (uint32_t iz = 0; iz < m; ++iz) {
-        for (uint32_t iy = 0; iy < m; ++iy) {
-            for (uint32_t ix = 0; ix < m; ++ix) {
+    for (uint32_t iz = 0; iz < m - 1; ++iz) {
+        for (uint32_t iy = 0; iy < m - 1; ++iy) {
+            for (uint32_t ix = 0; ix < m - 1; ++ix) {
                 if (grid[iz][iy][ix]) {
                     sumVolume += (int64_t)(xs[ix + 1] - xs[ix]) *
                                  (int64_t)(ys[iy + 1] - ys[iy]) *
