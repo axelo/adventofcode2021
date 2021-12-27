@@ -1,24 +1,58 @@
 #include "Helpers.c"
 
-#define CAP 100
+#define CAP 30
+#define COORDS_CAP 30
 
 typedef struct {
     int x;
     int y;
+    int z;
 } Coord;
 
-static int compareInt(const void *a, const void *b) {
-    return *(const int32_t *)a - *(const int32_t *)b;
+typedef struct {
+    int n;
+    Coord beacons[COORDS_CAP];
+} Scanner;
+
+// static int compareInt(const void *a, const void *b) {
+//     return *(const int32_t *)a - *(const int32_t *)b;
+// }
+
+static uint32_t parse(const char *input, Scanner scanners[CAP]) {
+    int charsRead = 0;
+    int i = -1;
+    uint32_t n = 0;
+
+    while (sscanf(input, "--- scanner %d ---\n%n", &i, &charsRead) == 1) {
+        input += charsRead;
+
+        int x = 0;
+        int y = 0;
+        int z = 0;
+
+        while (sscanf(input, "%d,%d,%d\n%n", &x, &y, &z, &charsRead) == 3) {
+            input += charsRead;
+
+            int j = scanners[i].n;
+
+            scanners[i].beacons[j].x = x;
+            scanners[i].beacons[j].y = y;
+            scanners[i].beacons[j].z = z;
+
+            ++scanners[i].n;
+        }
+    }
+
+    return (uint32_t)i + 1;
 }
 
-static uint32_t parse(const char *input, int xs[CAP]) {
-    return 0;
-}
+static int64_t partOne(uint32_t n, const Scanner scanners[n]) {
+    printf("n scanners: %d\n", n);
+    printf("scanners 0 beacons: %d\n", scanners[0].n);
+    printf("scanners 1 beacons: %d\n", scanners[1].n);
 
-static int64_t partOne(uint32_t n, const int xs[n]) {
-
-    Coord bs0[3] = {{0, 2}, {4, 1}, {3, 3}};
-    Coord bs1[3] = {{-1, -1}, {-5, 0}, {-2, 1}};
+    Coord bs0[3] = {{0, 2, 1}, {4, 1, 1}, {3, 3, 1}};
+    Coord bs1[3] = {{-1, -1, 1}, {-5, 0, 1}, {-2, 1, 1}};
 
     int bs0dist[3][3] = {0};
     int bs1dist[3][3] = {0};
@@ -26,9 +60,13 @@ static int64_t partOne(uint32_t n, const int xs[n]) {
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             // Abs [a − x] + Abs [b − y] + Abs [c − z]
-            bs0dist[i][j] = abs(bs0[i].x - bs0[j].x) + abs(bs0[i].y - bs0[j].y);
+            bs0dist[i][j] = abs(bs0[i].x - bs0[j].x) +
+                            abs(bs0[i].y - bs0[j].y) +
+                            abs(bs0[i].z - bs0[j].z);
 
-            bs1dist[i][j] = abs(bs1[i].x - bs1[j].x) + abs(bs1[i].y - bs1[j].y);
+            bs1dist[i][j] = abs(bs1[i].x - bs1[j].x) +
+                            abs(bs1[i].y - bs1[j].y) +
+                            abs(bs1[i].z - bs1[j].z);
         }
     }
 
@@ -58,16 +96,16 @@ static int64_t partTwo(uint32_t n, const int xs[n]) {
 int main() {
     const char *input = Helpers_readInputFile(__FILE__);
 
-    int xs[CAP] = {0};
-    uint32_t n = parse(input, xs);
+    Scanner scanners[CAP] = {0};
+    uint32_t n = parse(input, scanners);
 
     Helpers_assert(PART1, Helpers_clock(),
-                   partOne(n, xs),
+                   partOne(n, scanners),
                    -1, -2);
 
-    Helpers_assert(PART2, Helpers_clock(),
-                   partTwo(n, xs),
-                   -1, -2);
+    // Helpers_assert(PART2, Helpers_clock(),
+    //                partTwo(n, xs),
+    //                -1, -2);
 
     return 0;
 }
