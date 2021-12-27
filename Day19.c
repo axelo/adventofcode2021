@@ -46,45 +46,117 @@ static uint32_t parse(const char *input, Scanner scanners[CAP]) {
     return (uint32_t)i + 1;
 }
 
+// static bool overlapping(const Coord beacons[COORDS_CAP] b1, Coord beacon b) {
+//     for (int i = 0; i < 25; ++i) {
+//         for (int j = i + 1; j < 25; ++j) {
+//             printf("bs0dist[%d][%d] = %d\n", i, j, bs0dist[i][j]);
+//         }
+//     }
+// }
+
+static int blubb(const Scanner originScanner, const Scanner relativeScanner, Coord overlap[12][2]) {
+
+    int bs0dist[25][25] = {0};
+    int bs1dist[25][25] = {0};
+
+    for (int i = 0; i < 25; ++i) {
+        for (int j = 0; j < 25; ++j) {
+            // Abs [a − x] + Abs [b − y] + Abs [c − z]
+            bs0dist[i][j] = abs(originScanner.beacons[i].x - originScanner.beacons[j].x) +
+                            abs(originScanner.beacons[i].y - originScanner.beacons[j].y) +
+                            abs(originScanner.beacons[i].z - originScanner.beacons[j].z);
+
+            bs1dist[i][j] = abs(relativeScanner.beacons[i].x - relativeScanner.beacons[j].x) +
+                            abs(relativeScanner.beacons[i].y - relativeScanner.beacons[j].y) +
+                            abs(relativeScanner.beacons[i].z - relativeScanner.beacons[j].z);
+        }
+    }
+
+    int bar = 0;
+
+    for (int i = 0; i < 25; ++i) {
+        int foo = 0;
+        int t[25] = {0};
+
+        for (int j = 0; j < 25; ++j) {
+
+            if (i != j) {
+                int nSame = 0;
+
+                // printf("bs0dist[%d][%d] = %d should be found in 11 other beacons\n", i, j, bs0dist[i][j]);
+
+                for (int k = 0; k < 25; ++k) {
+                    // printf("Checking agains source k: %d\n", k);
+
+                    for (int l = 0; l < 25; ++l) {
+                        // printf("bs1dist[%d][%d] = %d\n", i, j, bs1dist[i][j]);
+
+                        if (k != l && bs0dist[k][l] == bs1dist[i][j]) {
+                            ++nSame;
+                            ++t[k];
+                            // printf("k is %d\n", k);
+                        }
+                    }
+                }
+
+                if (nSame > 0) {
+                    // printf("nSame is: %d\n", nSame);
+                    ++foo;
+                }
+            }
+        }
+
+        if (foo >= 11) { // replace foo with finding max t.
+            int maxTI = 0;
+            for (int c = 0; c < 25; ++c) {
+                // printf("t[%d] = %d\n", c, t[c]);
+                if (t[c] > t[maxTI]) {
+                    maxTI = c;
+                }
+            }
+
+            // printf("max ti: %d\n", maxTI);
+
+            overlap[bar][0] = originScanner.beacons[maxTI];
+            overlap[bar][1] = relativeScanner.beacons[i];
+
+            ++bar;
+
+            assert(bar < 13);
+
+            // printf("foo is %d for relative scanner beacon %4d,%4d,%4d - origin scanner beacon %4d,%4d,%4d\n", foo,
+            //        relativeScanner.beacons[i].x,
+            //        relativeScanner.beacons[i].y,
+            //        relativeScanner.beacons[i].z,
+            //        originScanner.beacons[maxTI].x,
+            //        originScanner.beacons[maxTI].y,
+            //        originScanner.beacons[maxTI].z);
+        }
+    }
+
+    // printf("\nbar is %d\n", bar);
+    return bar;
+}
+
 static int64_t partOne(uint32_t n, const Scanner scanners[n]) {
     printf("n scanners: %d\n", n);
     printf("scanners 0 beacons: %d\n", scanners[0].n);
     printf("scanners 1 beacons: %d\n", scanners[1].n);
 
-    Coord bs0[3] = {{0, 2, 1}, {4, 1, 1}, {3, 3, 1}};
-    Coord bs1[3] = {{-1, -1, 1}, {-5, 0, 1}, {-2, 1, 1}};
+    Coord overlap[12][2];
 
-    int bs0dist[3][3] = {0};
-    int bs1dist[3][3] = {0};
+    if (blubb(scanners[0], scanners[1], overlap) >= 12) {
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            // Abs [a − x] + Abs [b − y] + Abs [c − z]
-            bs0dist[i][j] = abs(bs0[i].x - bs0[j].x) +
-                            abs(bs0[i].y - bs0[j].y) +
-                            abs(bs0[i].z - bs0[j].z);
-
-            bs1dist[i][j] = abs(bs1[i].x - bs1[j].x) +
-                            abs(bs1[i].y - bs1[j].y) +
-                            abs(bs1[i].z - bs1[j].z);
+        for (int i = 0; i < 12; ++i) {
+            printf("Origin scanner beacon %4d,%4d,%4d; Relative scanner beacon %4d,%4d,%4d\n",
+                   overlap[i][0].x,
+                   overlap[i][0].y,
+                   overlap[i][0].z,
+                   overlap[i][1].x,
+                   overlap[i][1].y,
+                   overlap[i][1].z);
         }
     }
-
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            printf("bs0dist[%d][%d] = %d\n", i, j, bs0dist[i][j]);
-        }
-    }
-
-    printf("vs\n");
-
-    for (int i = 0; i < 3; ++i) {
-        for (int j = i + 1; j < 3; ++j) {
-            printf("bs1dist[%d][%d] = %d\n", i, j, bs1dist[i][j]);
-        }
-    }
-
-    // 1 overlapping 0
 
     return -1;
 }
