@@ -188,7 +188,7 @@ static inline Coord transform(Transform t, Coord c) {
 }
 
 static int findTransforms(const Transform sTransforms[CAP][CAP], bool visited[CAP][CAP], int s0, int s1, int n, Transform ts[300]) {
-    if (s0 >= 30) {
+    if (s0 >= CAP) {
         return -1;
     }
 
