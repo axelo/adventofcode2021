@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
     int sign;
-    int axis;
+    int axis; // 0 = x, 1 = y, 2 = z.
     int delta;
 } SignAxis;
 
