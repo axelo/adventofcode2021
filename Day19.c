@@ -57,8 +57,8 @@ static uint32_t parse(const char *input, Scanner scanners[CAP]) {
     return (uint32_t)i + 1;
 }
 
-static void distances(const Scanner s, int dist[30][30]) {
-    assert(s.n < 30);
+static void distances(const Scanner s, int dist[CAP][CAP]) {
+    assert(s.n < CAP);
 
     for (int i = 0; i < s.n; ++i) {
         for (int j = 0; j < s.n; ++j) {
@@ -70,12 +70,12 @@ static void distances(const Scanner s, int dist[30][30]) {
     }
 }
 
-static int findOverlaps(const int sDist[30][30][30], const Scanner s0, const Scanner s1, Coord overlaps[OVERLAP_CAP][2]) {
+static int findOverlaps(const int sDist[CAP][CAP][CAP], const Scanner s0, const Scanner s1, Coord overlaps[OVERLAP_CAP][2]) {
     int nOverlaps = 0;
 
     for (int i = 0; i < s1.n; ++i) {
         int nFound = 0;
-        int iOrigBeacon[30] = {0};
+        int iOrigBeacon[CAP] = {0};
 
         for (int j = 0; j < s1.n; ++j) {
             bool foundSameDist = false;
@@ -159,7 +159,7 @@ static SignAxis findSignAxisDelta(int originAxis, const Coord overlaps[OVERLAP_C
     assert(false);
 }
 
-static Transform transformFromRelativeScanners(const int sDist[30][30][30], const Scanner s0, const Scanner s1) {
+static Transform transformFromRelativeScanners(const int sDist[CAP][CAP][CAP], const Scanner s0, const Scanner s1) {
     Coord overlaps[OVERLAP_CAP][2] = {0};
     int nOverlaps = findOverlaps(sDist, s0, s1, overlaps);
 
@@ -174,33 +174,20 @@ static Transform transformFromRelativeScanners(const int sDist[30][30][30], cons
     return t;
 }
 
-static Coord transform(Transform t, Coord c) {
-    Coord c2 = {(t.x.axis == 0
-                     ? c.x
-                 : t.x.axis == 1
-                     ? c.y
-                     : c.z) *
-                        t.x.sign -
-                    t.x.delta,
-                (t.y.axis == 0
-                     ? c.x
-                 : t.y.axis == 1
-                     ? c.y
-                     : c.z) *
-                        t.y.sign -
-                    t.y.delta,
-                (t.z.axis == 0
-                     ? c.x
-                 : t.z.axis == 1
-                     ? c.y
-                     : c.z) *
-                        t.z.sign -
-                    t.z.delta};
+static inline Coord transform(Transform t, Coord c) {
+    int x = t.x.axis == 0 ? c.x : t.x.axis == 1 ? c.y
+                                                : c.z;
+    int y = t.y.axis == 0 ? c.x : t.y.axis == 1 ? c.y
+                                                : c.z;
+    int z = t.z.axis == 0 ? c.x : t.z.axis == 1 ? c.y
+                                                : c.z;
 
-    return c2;
+    return (Coord){x * t.x.sign - t.x.delta,
+                   y * t.y.sign - t.y.delta,
+                   z * t.z.sign - t.z.delta};
 }
 
-static int findTransforms(const Transform sTransforms[30][30], bool visited[30][30], int s0, int s1, int n, Transform ts[3000]) {
+static int findTransforms(const Transform sTransforms[CAP][CAP], bool visited[CAP][CAP], int s0, int s1, int n, Transform ts[300]) {
     if (s0 >= 30) {
         return -1;
     }
@@ -243,8 +230,8 @@ static int compareCoord(const void *a, const void *b) {
 }
 
 static int64_t partOne(uint32_t n, Scanner scanners[n]) {
-    Transform sTransform[30][30] = {0};
-    int sDist[30][30][30] = {0};
+    Transform sTransform[CAP][CAP] = {0};
+    int sDist[CAP][CAP][CAP] = {0};
 
     for (uint32_t s = 0; s < n; ++s) {
         distances(scanners[s], sDist[s]);
@@ -268,7 +255,7 @@ static int64_t partOne(uint32_t n, Scanner scanners[n]) {
 
     for (int i = 1; i < scanners[i].n; ++i) {
         // Finding transform from scanner to 0 so we can find same beacon coords.
-        bool visited[30][30] = {false};
+        bool visited[CAP][CAP] = {false};
         int nt = findTransforms(sTransform, visited, 0, i, 0, ts);
         assert(nt > 0);
 
