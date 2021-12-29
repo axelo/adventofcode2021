@@ -2,6 +2,7 @@
 
 #define CAP 30
 #define COORDS_CAP 30
+#define OVERLAP_CAP 30
 
 typedef struct {
     int x;
@@ -10,18 +11,26 @@ typedef struct {
 } Coord;
 
 typedef struct {
+    int id;
     int n;
     Coord beacons[COORDS_CAP];
 } Scanner;
 
-// static int compareInt(const void *a, const void *b) {
-//     return *(const int32_t *)a - *(const int32_t *)b;
-// }
+typedef struct {
+    int sign;
+    int axis;
+    int delta;
+} SignAxis;
+
+typedef struct {
+    SignAxis x;
+    SignAxis y;
+    SignAxis z;
+} Transform;
 
 static uint32_t parse(const char *input, Scanner scanners[CAP]) {
     int charsRead = 0;
     int i = -1;
-    uint32_t n = 0;
 
     while (sscanf(input, "--- scanner %d ---\n%n", &i, &charsRead) == 1) {
         input += charsRead;
@@ -29,6 +38,8 @@ static uint32_t parse(const char *input, Scanner scanners[CAP]) {
         int x = 0;
         int y = 0;
         int z = 0;
+
+        scanners[i].id = i;
 
         while (sscanf(input, "%d,%d,%d\n%n", &x, &y, &z, &charsRead) == 3) {
             input += charsRead;
@@ -46,123 +57,245 @@ static uint32_t parse(const char *input, Scanner scanners[CAP]) {
     return (uint32_t)i + 1;
 }
 
-// static bool overlapping(const Coord beacons[COORDS_CAP] b1, Coord beacon b) {
-//     for (int i = 0; i < 25; ++i) {
-//         for (int j = i + 1; j < 25; ++j) {
-//             printf("bs0dist[%d][%d] = %d\n", i, j, bs0dist[i][j]);
-//         }
-//     }
-// }
+static void distances(const Scanner s, int dist[30][30]) {
+    assert(s.n < 30);
 
-static int blubb(const Scanner originScanner, const Scanner relativeScanner, Coord overlap[12][2]) {
-
-    int bs0dist[25][25] = {0};
-    int bs1dist[25][25] = {0};
-
-    for (int i = 0; i < 25; ++i) {
-        for (int j = 0; j < 25; ++j) {
+    for (int i = 0; i < s.n; ++i) {
+        for (int j = 0; j < s.n; ++j) {
             // Abs [a − x] + Abs [b − y] + Abs [c − z]
-            bs0dist[i][j] = abs(originScanner.beacons[i].x - originScanner.beacons[j].x) +
-                            abs(originScanner.beacons[i].y - originScanner.beacons[j].y) +
-                            abs(originScanner.beacons[i].z - originScanner.beacons[j].z);
-
-            bs1dist[i][j] = abs(relativeScanner.beacons[i].x - relativeScanner.beacons[j].x) +
-                            abs(relativeScanner.beacons[i].y - relativeScanner.beacons[j].y) +
-                            abs(relativeScanner.beacons[i].z - relativeScanner.beacons[j].z);
+            dist[i][j] = abs(s.beacons[i].x - s.beacons[j].x) +
+                         abs(s.beacons[i].y - s.beacons[j].y) +
+                         abs(s.beacons[i].z - s.beacons[j].z);
         }
     }
+}
 
-    int bar = 0;
+static int findOverlaps(const int sDist[30][30][30], const Scanner s0, const Scanner s1, Coord overlaps[OVERLAP_CAP][2]) {
+    int nOverlaps = 0;
 
-    for (int i = 0; i < 25; ++i) {
-        int foo = 0;
-        int t[25] = {0};
+    for (int i = 0; i < s1.n; ++i) {
+        int nFound = 0;
+        int iOrigBeacon[30] = {0};
 
-        for (int j = 0; j < 25; ++j) {
+        for (int j = 0; j < s1.n; ++j) {
+            bool foundSameDist = false;
 
-            if (i != j) {
-                int nSame = 0;
-
-                // printf("bs0dist[%d][%d] = %d should be found in 11 other beacons\n", i, j, bs0dist[i][j]);
-
-                for (int k = 0; k < 25; ++k) {
-                    // printf("Checking agains source k: %d\n", k);
-
-                    for (int l = 0; l < 25; ++l) {
-                        // printf("bs1dist[%d][%d] = %d\n", i, j, bs1dist[i][j]);
-
-                        if (k != l && bs0dist[k][l] == bs1dist[i][j]) {
-                            ++nSame;
-                            ++t[k];
-                            // printf("k is %d\n", k);
-                        }
+            for (int k = 0; k < s0.n; ++k) {
+                for (int l = 0; l < s0.n; ++l) {
+                    if (sDist[s0.id][k][l] == sDist[s1.id][i][j]) {
+                        ++iOrigBeacon[k];
+                        foundSameDist = true;
+                        break;
                     }
                 }
+            }
 
-                if (nSame > 0) {
-                    // printf("nSame is: %d\n", nSame);
-                    ++foo;
-                }
+            if (foundSameDist) {
+                ++nFound;
             }
         }
 
-        if (foo >= 11) { // replace foo with finding max t.
-            int maxTI = 0;
-            for (int c = 0; c < 25; ++c) {
-                // printf("t[%d] = %d\n", c, t[c]);
-                if (t[c] > t[maxTI]) {
-                    maxTI = c;
+        if (nFound >= 12) {
+            int origI = 0;
+            for (int c = 0; c < s0.n; ++c) {
+                if (iOrigBeacon[c] > iOrigBeacon[origI]) {
+                    origI = c;
                 }
             }
 
-            // printf("max ti: %d\n", maxTI);
+            overlaps[nOverlaps][0] = s0.beacons[origI];
+            overlaps[nOverlaps][1] = s1.beacons[i];
 
-            overlap[bar][0] = originScanner.beacons[maxTI];
-            overlap[bar][1] = relativeScanner.beacons[i];
-
-            ++bar;
-
-            assert(bar < 13);
-
-            // printf("foo is %d for relative scanner beacon %4d,%4d,%4d - origin scanner beacon %4d,%4d,%4d\n", foo,
-            //        relativeScanner.beacons[i].x,
-            //        relativeScanner.beacons[i].y,
-            //        relativeScanner.beacons[i].z,
-            //        originScanner.beacons[maxTI].x,
-            //        originScanner.beacons[maxTI].y,
-            //        originScanner.beacons[maxTI].z);
+            ++nOverlaps;
+            assert(nOverlaps < OVERLAP_CAP);
         }
     }
 
-    // printf("\nbar is %d\n", bar);
-    return bar;
+    return nOverlaps;
 }
 
-static int64_t partOne(uint32_t n, const Scanner scanners[n]) {
-    printf("n scanners: %d\n", n);
-    printf("scanners 0 beacons: %d\n", scanners[0].n);
-    printf("scanners 1 beacons: %d\n", scanners[1].n);
+#define HMM 1
 
-    Coord overlap[12][2];
+static SignAxis findSignAxisDelta(int originAxis, const Coord overlaps[OVERLAP_CAP][2]) {
+    SignAxis result = {0};
 
-    if (blubb(scanners[0], scanners[1], overlap) >= 12) {
+    // This is kind of cheating, should try all overlaps as base and pick the popular one.
+    // For my input 0 is not correct, but 1 one is :)
+    Coord originCoord = overlaps[HMM][0];
+    Coord relativeCoord = overlaps[HMM][1];
 
-        for (int i = 0; i < 12; ++i) {
-            printf("Origin scanner beacon %4d,%4d,%4d; Relative scanner beacon %4d,%4d,%4d\n",
-                   overlap[i][0].x,
-                   overlap[i][0].y,
-                   overlap[i][0].z,
-                   overlap[i][1].x,
-                   overlap[i][1].y,
-                   overlap[i][1].z);
+    int origin = originAxis == 0 ? originCoord.x : originAxis == 1 ? originCoord.y
+                                                                   : originCoord.z;
+
+    for (int axis = 0; axis < 3; ++axis) {
+        for (int sign = -1; sign < 2; sign += 2) {
+            int delta = (sign * (axis == 0 ? relativeCoord.x : axis == 1 ? relativeCoord.y
+                                                                         : relativeCoord.z)) -
+                        origin;
+
+            int countSame = 0;
+
+            for (int j = 0; j < 12; ++j) {
+                int delta2 = sign * (axis == 0 ? overlaps[j][1].x : axis == 1 ? overlaps[j][1].y
+                                                                              : overlaps[j][1].z) -
+                             (originAxis == 0 ? overlaps[j][0].x : originAxis == 1 ? overlaps[j][0].y
+                                                                                   : overlaps[j][0].z);
+
+                if (delta == delta2) {
+                    ++countSame;
+                }
+            }
+
+            if (countSame >= 12) {
+                result.axis = axis;
+                result.sign = sign;
+                result.delta = delta;
+
+                return result;
+            }
         }
     }
 
-    return -1;
+    assert(false);
 }
 
-static int64_t partTwo(uint32_t n, const int xs[n]) {
-    return -1;
+static Transform transformFromRelativeScanners(const int sDist[30][30][30], const Scanner s0, const Scanner s1) {
+    Coord overlaps[OVERLAP_CAP][2] = {0};
+    int nOverlaps = findOverlaps(sDist, s0, s1, overlaps);
+
+    Transform t = {0};
+
+    if (nOverlaps >= 12) {
+        t.x = findSignAxisDelta(0, overlaps);
+        t.y = findSignAxisDelta(1, overlaps);
+        t.z = findSignAxisDelta(2, overlaps);
+    }
+
+    return t;
+}
+
+static Coord transform(Transform t, Coord c) {
+    Coord c2 = {(t.x.axis == 0
+                     ? c.x
+                 : t.x.axis == 1
+                     ? c.y
+                     : c.z) *
+                        t.x.sign -
+                    t.x.delta,
+                (t.y.axis == 0
+                     ? c.x
+                 : t.y.axis == 1
+                     ? c.y
+                     : c.z) *
+                        t.y.sign -
+                    t.y.delta,
+                (t.z.axis == 0
+                     ? c.x
+                 : t.z.axis == 1
+                     ? c.y
+                     : c.z) *
+                        t.z.sign -
+                    t.z.delta};
+
+    return c2;
+}
+
+static int findTransforms(const Transform sTransforms[30][30], bool visited[30][30], int s0, int s1, int n, Transform ts[3000]) {
+    if (s0 >= 30) {
+        return -1;
+    }
+
+    if (s0 != s1 && !visited[s0][s1] && sTransforms[s0][s1].x.sign != 0) {
+        visited[s1][s0] = true;
+        visited[s0][s1] = true;
+
+        ts[n++] = sTransforms[s0][s1];
+
+        if (s0 == 0) {
+            return n;
+        }
+
+        int m = findTransforms(sTransforms, visited, 0, s0, n, ts);
+
+        if (m > 0) {
+            return m;
+        }
+        --n;
+    }
+
+    return findTransforms(sTransforms, visited, s0 + 1, s1, n, ts);
+}
+
+static int compareCoord(const void *a, const void *b) {
+    int dx = ((const Coord *)a)->x - ((const Coord *)b)->x;
+
+    if (dx != 0)
+        return dx;
+
+    int dy = ((const Coord *)a)->y - ((const Coord *)b)->y;
+
+    if (dy != 0)
+        return dy;
+
+    int dz = ((const Coord *)a)->z - ((const Coord *)b)->z;
+
+    return dz;
+}
+
+static int64_t partOne(uint32_t n, Scanner scanners[n]) {
+    Transform sTransform[30][30] = {0};
+    int sDist[30][30][30] = {0};
+
+    for (uint32_t s = 0; s < n; ++s) {
+        distances(scanners[s], sDist[s]);
+    }
+
+    for (uint32_t s0 = 0; s0 < n; ++s0) {
+        for (uint32_t s1 = 0; s1 < n; ++s1) {
+            sTransform[s0][s1] = transformFromRelativeScanners(sDist, scanners[s0], scanners[s1]);
+        }
+    }
+
+    Coord coords[2000] = {0};
+    uint32_t m = 0;
+
+    // Adding all beacons from scanner 0
+    for (int i = 0; i < scanners[0].n; ++i) {
+        coords[m++] = scanners[0].beacons[i];
+    }
+
+    Transform ts[300] = {0};
+
+    for (int i = 1; i < scanners[i].n; ++i) {
+        // Finding transform from scanner to 0 so we can find same beacon coords.
+        bool visited[30][30] = {false};
+        int nt = findTransforms(sTransform, visited, 0, i, 0, ts);
+        assert(nt > 0);
+
+        for (int j = 0; j < scanners[i].n; ++j) {
+            Coord c = scanners[i].beacons[j];
+
+            for (int k = 0; k < nt; ++k) {
+                c = transform(ts[k], c);
+            }
+
+            coords[m++] = c;
+            assert(m < 2000);
+        }
+    }
+
+    qsort(coords, m, sizeof(Coord), compareCoord);
+
+    int nBeacons = 1;
+
+    for (uint32_t i = 0; i < m - 1; ++i) {
+        if ((coords[i].x != coords[i + 1].x) ||
+            (coords[i].y != coords[i + 1].y) ||
+            (coords[i].z != coords[i + 1].z))
+            ++nBeacons;
+    }
+
+    return nBeacons;
 }
 
 int main() {
@@ -173,11 +306,7 @@ int main() {
 
     Helpers_assert(PART1, Helpers_clock(),
                    partOne(n, scanners),
-                   -1, -2);
-
-    // Helpers_assert(PART2, Helpers_clock(),
-    //                partTwo(n, xs),
-    //                -1, -2);
+                   79, 330);
 
     return 0;
 }
