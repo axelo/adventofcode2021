@@ -7,13 +7,10 @@
 set -euxo pipefail
 
 if [ "${1-}" == "all" ]; then
-    for i in {01..18}
+    for i in {01..22}
     do
     ./$0 Day$(printf "%02d" $i).c ${2-}
     done
-    ./$0 Day20.c ${2-}
-    ./$0 Day21.c ${2-}
-    ./$0 Day22.c ${2-}
     ./$0 Day24.c ${2-}
     ./$0 Day25.c ${2-}
 else
