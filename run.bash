@@ -7,12 +7,10 @@
 set -euxo pipefail
 
 if [ "${1-}" == "all" ]; then
-    for i in {01..22}
+    for i in {01..25}
     do
     ./$0 Day$(printf "%02d" $i).c ${2-}
     done
-    ./$0 Day24.c ${2-}
-    ./$0 Day25.c ${2-}
 else
     mkdir -p ./bin
 
@@ -32,6 +30,6 @@ else
     fi
 
     # -std=c18              Use C standard C18
-    # -fsanitize=address    Detect address errors during runtime, adds extra code.
+    # -fsanitize=address    Detect address errors during runtime, adds extra runtime code.
     cc -fsanitize=address -std=c18 $OPTIMIZATION_LEVEL $WARNINGS $DISABLED_WARNINGS $DEFINES $1 -o ./bin/$1.out && ./bin/$1.out
 fi
