@@ -2,17 +2,9 @@
 
 #define CAP 100
 
-typedef enum {
-    Empty = 0,
-    Hallway,
-    Wall,
-} Tile;
-
 typedef struct {
     int x;
     int y;
-    // char t;
-
 } Amp;
 
 typedef struct {
@@ -23,7 +15,7 @@ typedef struct {
 typedef struct {
     int energy;
     Amp amp;
-    char m[5][13];
+    char m[4][13];
 } Map;
 
 typedef struct {
@@ -45,7 +37,6 @@ static Map parse(const char *input) {
     }
 
     map.m[1][0] = map.m[1][12] = '#';
-    // map.m[1][3] = map.m[1][5] = map.m[1][7] = map.m[1][9] = '_';
 
     map.m[2][0] = map.m[2][12] = '#';
     map.m[2][1] = map.m[2][11] = '#';
@@ -53,10 +44,6 @@ static Map parse(const char *input) {
     map.m[2][4] = map.m[2][8] = map.m[2][6] = '#';
 
     map.m[3][2] = map.m[3][10] = map.m[3][4] = map.m[3][8] = map.m[3][6] = '#';
-
-    for (int x = 2; x < 11; ++x) {
-        map.m[4][x] = '#';
-    }
 
     sscanf(input, "#############\n%n", &charsRead);
     input += charsRead;
@@ -72,17 +59,7 @@ static Map parse(const char *input) {
     map.m[2][7] = a3[0];
     map.m[2][9] = a4[0];
 
-    // amps.as[0] = (Amp){.x = 3, .y = 2, .t = a1[0]};
-    // amps.as[1] = (Amp){.x = 5, .y = 2, .t = a2[0]};
-    // amps.as[2] = (Amp){.x = 7, .y = 2, .t = a3[0]};
-    // amps.as[3] = (Amp){.x = 9, .y = 2, .t = a4[0]};
-
     assert(sscanf(input, "  #%1[^#]#%1[^#]#%1[^#]#%1[^#]#\n", a1, a2, a3, a4) == 4);
-
-    // amps.as[4] = (Amp){.x = 3, .y = 3, .t = a1[0]};
-    // amps.as[5] = (Amp){.x = 5, .y = 3, .t = a2[0]};
-    // amps.as[6] = (Amp){.x = 7, .y = 3, .t = a3[0]};
-    // amps.as[7] = (Amp){.x = 9, .y = 3, .t = a4[0]};
 
     map.m[3][3] = a1[0];
     map.m[3][5] = a2[0];
@@ -98,7 +75,7 @@ static void dump(Map map) {
 
     // printf("Energy used: %d\n", map.energy);
 
-    for (int y = 0; y < 5; ++y) {
+    for (int y = 0; y < 4; ++y) {
         for (int x = 0; x < 13; ++x) {
             char t = map.m[y][x] == 0 ? ' ' : map.m[y][x];
             if (x == hx && y == hy) {
@@ -110,89 +87,6 @@ static void dump(Map map) {
         printf("\n");
     }
 }
-
-// static int findM(Tile map[5][13], int x, int y, int n, int moves[300][2]) {
-//     Tile amp = map[y][x];
-
-//     assert(amp >= A && amp <= D);
-
-//     bool isInCorrectRoom = y >= 2 && ((amp == A && x == 3) ||
-//                                       (amp == B && x == 5) ||
-//                                       (amp == C && x == 7) ||
-//                                       (amp == D && x == 9));
-
-//     if (isInCorrectRoom) {
-//         bool done = true;
-
-//         for (int i = y + 1; i < 4; ++i) {
-//             if (map[i][x] != amp) {
-//                 done = false;
-//                 break;
-//             }
-//         }
-
-//         printf("Are we not blocking any other amp? %s\n", done ? "true" : "false");
-//         if (done) {
-//             return n;
-//         }
-//     }
-// }
-
-// static int findMoves(const Tile map[5][13], int x, int y, int n, int moves[300][2]) {
-//     Tile amp = map[y][x];
-
-//     assert(amp >= A && amp <= D);
-
-//     bool isInRoom = y >= 2 && (x == 3 || x == 5 || x == 7 || x == 9);
-
-//     bool isInCorrectRoom = isInRoom && ((amp == A && x == 3) ||
-//                                         (amp == B && x == 5) ||
-//                                         (amp == C && x == 7) ||
-//                                         (amp == D && x == 9));
-
-//     if (isInCorrectRoom) {
-//         bool yes = true;
-
-//         for (int i = y + 1; i < 4; ++i) {
-//             if (map[i][x] != amp) {
-//                 yes = false;
-//                 break;
-//             }
-//         }
-
-//         printf("Are we not blocking any other amp? %s\n", yes ? "true" : "false");
-//         if (yes) {
-//             return n;
-//         }
-//     }
-
-//     printf("findMoves: (%d,%d): amp: %c, isInRoom: %s, isInCorrectRoom: %s\n",
-//            x, y, amp == A ? 'A' : amp == B ? 'B'
-//                               : amp == C   ? 'C'
-//                                            : 'D',
-//            isInRoom ? "true" : "false", isInCorrectRoom ? "true" : "false");
-
-//     if (isInRoom && !isInCorrectRoom) {
-//         bool yes = true;
-//         for (int i = y - 1; i >= 1; --i) {
-//             if (map[i][x] != Empty && map[i][x] != Hallway) {
-//                 yes = false;
-//                 break;
-//             }
-//         }
-
-//         printf("Can we move out of the room? %s\n", yes ? "true" : "false");
-//         if (yes) {
-
-//         } else {
-//             return 0;
-//         }
-//     } else {
-//         assert(false);
-//     }
-
-//     return 0;
-// }
 
 static Amps findMalplacedAmps(Map map) {
     Amps amps = {0};
@@ -475,13 +369,14 @@ static int64_t partOne(Map map, int64_t energy) {
     Amps amps = findMalplacedAmps(map);
 
     if (amps.n == 0) {
-        // printf("** All done! **\n");
-        // dump(map);
-        // printf("****\n");
+
         ++ccc;
 
         if ((ccc % 20000) == 0) {
             printf("Done: %lld - %d\n", ccc, map.energy);
+            // printf("** All done! **\n");
+            dump(map);
+            // printf("****\n");
         }
         return map.energy < energy ? map.energy : energy;
     }
@@ -595,7 +490,7 @@ int main() {
 
     Helpers_assert(PART1, Helpers_clock(),
                    partOne(map, INT_MAX),
-                   -1, -2);
+                   12521, -2);
 
     // Helpers_assert(PART2, Helpers_clock(),
     //                partTwo(n, xs),
