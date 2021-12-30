@@ -1,26 +1,16 @@
 #include "Helpers.c"
 
+#define QUEUE_CAP 200000
+
 typedef struct {
     int x;
     int y;
 } Amp;
 
 typedef struct {
-    int n;
-    Amp as[17];
-} Amps;
-
-typedef struct {
     int32_t energy;
     int8_t m[5][11];
 } Map;
-
-typedef struct {
-    int n;
-    Map ms[10];
-} Maps;
-
-#define QUEUE_CAP 200000
 
 static Map queue[QUEUE_CAP];
 static int64_t nQueue = 0;
@@ -94,7 +84,6 @@ static Map parse(const char *input, bool part2) {
 
     assert(sscanf(input, "  #%1[^#]#%1[^#]#%1[^#]#%1[^#]#\n%n", a1, a2, a3, a4, &charsRead) == 4);
     input += charsRead;
-    // printf("%s %s %s %s\n", a1, a2, a3, a4);
 
     map.m[y][2] = a1[0];
     map.m[y][4] = a2[0];
@@ -104,32 +93,24 @@ static Map parse(const char *input, bool part2) {
     return map;
 }
 
-static void dump(int roomSize, const Map *map, const Amp amp) {
-    int hx = amp.x;
-    int hy = amp.y;
-
+static void dump(int roomSize, const Map *map) {
     for (int y = 0; y <= roomSize; ++y) {
         for (int x = 0; x < 11; ++x) {
-            char t = map->m[y][x] == 0 ? ' ' : map->m[y][x];
-            if (x == hx && y == hy) {
-                printf("\033[0;33m%c\033[0m", t);
-            } else {
-                printf("%c", t);
-            }
+            printf("%c", map->m[y][x] == 0 ? ' ' : map->m[y][x]);
         }
         printf("\n");
     }
 }
 
-static void findMalplacedAmps(int roomSize, const Map *map, Amps *amps) {
-    amps->n = 0;
+static int findMalplacedAmps(int roomSize, const Map *map, Amp amps[16]) {
+    int n = 0;
 
     for (int x = 0; x < 11; ++x) {
         if (map->m[0][x] != 0) {
-            assert(amps->n < 16);
-            amps->as[amps->n].x = x;
-            amps->as[amps->n].y = 0;
-            ++amps->n;
+            assert(n < 16);
+            amps[n].x = x;
+            amps[n].y = 0;
+            ++n;
         }
     }
 
@@ -137,10 +118,10 @@ static void findMalplacedAmps(int roomSize, const Map *map, Amps *amps) {
         if (map->m[y][2] != 0 && map->m[y][2] != 'A') {
             for (int ay = y; ay >= 1; --ay) {
                 if (map->m[ay][2] != 0) {
-                    assert(amps->n < 16);
-                    amps->as[amps->n].x = 2;
-                    amps->as[amps->n].y = ay;
-                    ++amps->n;
+                    assert(n < 16);
+                    amps[n].x = 2;
+                    amps[n].y = ay;
+                    ++n;
                 }
             }
             break;
@@ -151,10 +132,10 @@ static void findMalplacedAmps(int roomSize, const Map *map, Amps *amps) {
         if (map->m[y][4] != 0 && map->m[y][4] != 'B') {
             for (int by = y; by >= 1; --by) {
                 if (map->m[by][4] != 0) {
-                    assert(amps->n < 16);
-                    amps->as[amps->n].x = 4;
-                    amps->as[amps->n].y = by;
-                    ++amps->n;
+                    assert(n < 16);
+                    amps[n].x = 4;
+                    amps[n].y = by;
+                    ++n;
                 }
             }
             break;
@@ -165,10 +146,10 @@ static void findMalplacedAmps(int roomSize, const Map *map, Amps *amps) {
         if (map->m[y][6] != 0 && map->m[y][6] != 'C') {
             for (int by = y; by >= 1; --by) {
                 if (map->m[by][6] != 0) {
-                    assert(amps->n < 16);
-                    amps->as[amps->n].x = 6;
-                    amps->as[amps->n].y = by;
-                    ++amps->n;
+                    assert(n < 16);
+                    amps[n].x = 6;
+                    amps[n].y = by;
+                    ++n;
                 }
             }
             break;
@@ -179,22 +160,21 @@ static void findMalplacedAmps(int roomSize, const Map *map, Amps *amps) {
         if (map->m[y][8] != 0 && map->m[y][8] != 'D') {
             for (int by = y; by >= 1; --by) {
                 if (map->m[by][8] != 0) {
-                    assert(amps->n < 16);
-                    amps->as[amps->n].x = 8;
-                    amps->as[amps->n].y = by;
-                    ++amps->n;
+                    assert(n < 16);
+                    amps[n].x = 8;
+                    amps[n].y = by;
+                    ++n;
                 }
             }
             break;
         }
     }
+
+    return n;
 }
 
-static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
-
-    // printf("MOVE FROM:\n");
-    // dump(roomSize, map, amp);
-    maps->n = 0;
+static int moveOnce(int roomSize, const Amp amp, const Map *map, Map outMaps[10]) {
+    int n = 0;
 
     int x = amp.x;
     int y = amp.y;
@@ -214,13 +194,7 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
         : t == 'C' ? 100
                    : 1000;
 
-    // printf("(%d,%d): %c, in hallway? %s. In room? %s. In correct room? %s\n", x, y, t,
-    //        isInHallway ? "true" : "false", isInRoom ? "true" : "false", isInCorrectRoom ? "true" : "false");
-
-    bool isInRoom = y > 0;
-
-    if (isInRoom) {
-        // Can we go to the hallway?
+    if (y > 0) { // Is inside a room. Can we go to the hallway?
         int ySteps = 0;
 
         for (int y2 = y - 1; y2 >= 0; --y2) {
@@ -231,10 +205,7 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
             ++ySteps;
         }
 
-        // printf("Can we go to the hallway? %s\n", empty ? "true" : "false");
-
-        if (ySteps > 0) {
-            // yes, can we past the hallway to the correct room?
+        if (ySteps > 0) { // Yes, can we walk past the hallway to the correct room?
             bool canWalkToHallway = true;
 
             if (destX > x) {
@@ -253,9 +224,7 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
                 }
             }
 
-            if (canWalkToHallway) {
-                // yes, can we enter the room?
-                // (map->m[2][destX] == t && map->m[1][destX] == 0)
+            if (canWalkToHallway) { // Yes, can we enter the room?
                 int roomY = 0;
 
                 for (int y2 = roomSize; y2 >= 1; --y2) {
@@ -269,26 +238,21 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
                     }
                 }
 
-                if (roomY > 0) {
-                    // Move into the room
-                    maps->ms[maps->n] = *map;
+                if (roomY > 0) { // Yes, move into the room.
+                    outMaps[n] = *map;
+                    outMaps[n].energy += energyPerStep * (abs(destX - x) + ySteps + roomY);
 
-                    maps->ms[maps->n].energy += energyPerStep * (abs(destX - x) + ySteps + roomY);
+                    outMaps[n].m[y][x] = 0;
+                    outMaps[n].m[roomY][destX] = t;
 
-                    // maps->ms[maps->n].amp.x = destX;
-                    // maps->ms[maps->n].amp.y = roomY;
+                    ++n;
+                    assert(n < 10);
 
-                    maps->ms[maps->n].m[y][x] = 0;
-                    maps->ms[maps->n].m[roomY][destX] = t;
-
-                    ++maps->n;
-                    assert(maps->n < 10);
-
-                    return;
+                    return n;
                 }
             }
 
-            // Nope, pick a valid position in the hallway
+            // Nope, collect valid positions in the hallway.
             for (int x2 = x - 1; x2 >= 0; --x2) {
                 if (map->m[0][x2] != 0) {
                     break;
@@ -298,18 +262,14 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
                     continue;
                 }
 
-                maps->ms[maps->n] = *map;
+                outMaps[n] = *map;
+                outMaps[n].energy += energyPerStep * (abs(x2 - x) + ySteps);
 
-                maps->ms[maps->n].energy += energyPerStep * (abs(x2 - x) + ySteps);
+                outMaps[n].m[y][x] = 0;
+                outMaps[n].m[0][x2] = t;
 
-                // maps->ms[maps->n].amp.x = x2;
-                // maps->ms[maps->n].amp.y = 0;
-
-                maps->ms[maps->n].m[y][x] = 0;
-                maps->ms[maps->n].m[0][x2] = t;
-
-                ++maps->n;
-                assert(maps->n < 10);
+                ++n;
+                assert(n < 10);
             }
 
             for (int x2 = x + 1; x2 < 11; ++x2) {
@@ -321,51 +281,36 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
                     continue;
                 }
 
-                // printf("Could try (%d,%d)\n", x2, 1);
-                maps->ms[maps->n] = *map;
+                outMaps[n] = *map;
+                outMaps[n].energy += energyPerStep * (abs(x2 - x) + ySteps);
 
-                maps->ms[maps->n].energy += energyPerStep * (abs(x2 - x) + ySteps);
+                outMaps[n].m[y][x] = 0;
+                outMaps[n].m[0][x2] = t;
 
-                // maps->ms[maps->n].amp.x = x2;
-                // maps->ms[maps->n].amp.y = 0;
-
-                maps->ms[maps->n].m[y][x] = 0;
-                maps->ms[maps->n].m[0][x2] = t;
-
-                ++maps->n;
-                assert(maps->n < 10);
+                ++n;
+                assert(n < 10);
             }
-
-            return;
-        } else {
-            // no, can't go to the hallway
-            // printf("Stuck in wrong room!\n");
-            return;
         }
-    } else {
-        // Once an amphipod stops moving in the hallway, it will stay in that spot until it can move into a room.
-        // Amphipods will never move from the hallway into a room unless that room is their destination room and that room contains no amphipods which do not also have that room as their own destination.
-        bool canWalkToHallway = true;
+    } else { // In the hallway. Can we walk to the correct room hallway?
+        bool canWalkToRoomHallway = true;
 
         if (x < destX) {
             for (int x2 = x + 1; x2 <= destX; ++x2) {
                 if (map->m[0][x2] != 0) {
-                    canWalkToHallway = false;
+                    canWalkToRoomHallway = false;
                     break;
                 }
             }
         } else {
             for (int x2 = x - 1; x2 >= destX; --x2) {
                 if (map->m[0][x2] != 0) {
-                    canWalkToHallway = false;
+                    canWalkToRoomHallway = false;
                     break;
                 }
             }
         }
-        // printf("xEmpty to %d? %s\n", destX, xEmpty ? "true" : "false");
 
-        if (canWalkToHallway) { // TODO!!!!
-            // yes, can we enter the room?
+        if (canWalkToRoomHallway) { // Yes, can we enter the room?
             int roomY = 0;
 
             for (int y2 = roomSize; y2 >= 1; --y2) {
@@ -379,59 +324,20 @@ static void moveOnce(int roomSize, const Amp amp, const Map *map, Maps *maps) {
                 }
             }
 
-            if (roomY > 0) {
-                // Move into the room
-                maps->ms[maps->n] = *map;
+            if (roomY > 0) { // Yes, move into the room
+                outMaps[n] = *map;
+                outMaps[n].energy += energyPerStep * (abs(destX - x) + roomY);
 
-                maps->ms[maps->n].energy += energyPerStep * (abs(destX - x) + roomY);
+                outMaps[n].m[y][x] = 0;
+                outMaps[n].m[roomY][destX] = t;
 
-                // maps->ms[maps->n].amp.x = destX;
-                // maps->ms[maps->n].amp.y = roomY;
-
-                maps->ms[maps->n].m[y][x] = 0;
-                maps->ms[maps->n].m[roomY][destX] = t;
-
-                ++maps->n;
-                assert(maps->n < 10);
+                ++n;
+                assert(n < 10);
             }
-
-            return;
-            // if (map->m[2][destX] == 0) {
-            //     // printf("Could try %d,%d\n", 3, destX);
-
-            //     maps->ms[maps->n] = *map;
-
-            //     maps->ms[maps->n].energy += energyPerStep * (abs(destX - x) + abs(2 - y));
-
-            //     maps->ms[maps->n].m[y][x] = 0;
-            //     maps->ms[maps->n].m[2][destX] = t;
-
-            //     ++maps->n;
-            //     assert(maps->n < 10);
-
-            //     return;
-            // } else if (map->m[2][destX] == t && map->m[1][destX] == 0) {
-            //     // printf("Could try %d,%d\n", 2, destX);
-
-            //     maps->ms[maps->n] = *map;
-
-            //     maps->ms[maps->n].energy += energyPerStep * (abs(destX - x) + abs(1 - y));
-
-            //     maps->ms[maps->n].m[y][x] = 0;
-            //     maps->ms[maps->n].m[1][destX] = t;
-
-            //     ++maps->n;
-            //     assert(maps->n < 10);
-
-            //     return;
-            // } else {
-            //     // printf("Can't move into correct room\n");
-            //     return;
-            // }
         }
-
-        return;
     }
+
+    return n;
 }
 
 static bool isMapEqual(int roomSize, const Map *a, const Map *b) {
@@ -448,35 +354,37 @@ static bool isMapEqual(int roomSize, const Map *a, const Map *b) {
 static int partOne(int roomSize, const Map *map) {
     int minEnergy = INT_MAX;
 
-    Amps amps = {0};
-    Maps maps = {0};
+    Amp amps[16] = {0};
+    Map maps[10] = {0};
 
     queue[nQueue++] = *map;
 
     while (iQueue < nQueue) {
         Map *m = &queue[iQueue++];
 
-        findMalplacedAmps(roomSize, m, &amps);
+        int nAmps = findMalplacedAmps(roomSize, m, amps);
 
-        if (amps.n == 0) {
-            dump(roomSize, m, (Amp){-1, -1});
+        if (nAmps == 0) {
+            dump(roomSize, m);
 
             if (m->energy < minEnergy) {
                 minEnergy = m->energy;
             }
         }
 
-        for (int i = 0; i < amps.n; ++i) {
-            moveOnce(roomSize, amps.as[i], m, &maps);
+        for (int i = 0; i < nAmps; ++i) {
+            int nMaps = moveOnce(roomSize, amps[i], m, maps);
 
-            for (int j = 0; j < maps.n; ++j) {
-                if (maps.ms[j].energy < minEnergy) {
+            for (int j = 0; j < nMaps; ++j) {
+                if (maps[j].energy < minEnergy) {
                     bool visited = false;
 
+                    // This could be replaced with a priority queue instead to speed things up :)
+                    // But then I have to come up with a nice hash function.
                     for (int64_t k = iQueue; k < nQueue; ++k) {
-                        if (isMapEqual(roomSize, &maps.ms[j], &queue[k])) {
-                            if (queue[k].energy > maps.ms[j].energy) {
-                                queue[k].energy = maps.ms[j].energy;
+                        if (isMapEqual(roomSize, &maps[j], &queue[k])) {
+                            if (queue[k].energy > maps[j].energy) {
+                                queue[k].energy = maps[j].energy;
                             }
 
                             visited = true;
@@ -486,7 +394,7 @@ static int partOne(int roomSize, const Map *map) {
 
                     if (!visited) {
                         assert(nQueue < QUEUE_CAP);
-                        queue[nQueue++] = maps.ms[j];
+                        queue[nQueue++] = maps[j];
                     }
                 }
             }
