@@ -13,8 +13,13 @@ typedef struct {
 } Map;
 
 static Map queue[QUEUE_CAP];
-static int64_t nQueue = 0;
-static int64_t iQueue = 0;
+static int nQueue = 0;
+static int iQueue = 0;
+
+#define INDEX_CAP 0x3fff
+
+static int visitedTable[INDEX_CAP + 1][100];
+static int16_t nVisitedTable[INDEX_CAP + 1] = {0};
 
 static Map parse(const char *input, bool part2) {
     int charsRead = 0;
@@ -24,34 +29,6 @@ static Map parse(const char *input, bool part2) {
     char a4[2] = {0};
 
     Map map = {0};
-
-    map.m[1][0] = '#';
-    map.m[1][10] = '#';
-
-    map.m[1][1] = '#';
-    map.m[2][1] = '#';
-    map.m[3][1] = '#';
-    map.m[4][1] = '#';
-
-    map.m[1][3] = '#';
-    map.m[2][3] = '#';
-    map.m[3][3] = '#';
-    map.m[4][3] = '#';
-
-    map.m[1][5] = '#';
-    map.m[2][5] = '#';
-    map.m[3][5] = '#';
-    map.m[4][5] = '#';
-
-    map.m[1][7] = '#';
-    map.m[2][7] = '#';
-    map.m[3][7] = '#';
-    map.m[4][7] = '#';
-
-    map.m[1][9] = '#';
-    map.m[2][9] = '#';
-    map.m[3][9] = '#';
-    map.m[4][9] = '#';
 
     sscanf(input, "#############\n%n", &charsRead);
     input += charsRead;
@@ -73,6 +50,7 @@ static Map parse(const char *input, bool part2) {
         map.m[2][4] = 'C';
         map.m[2][6] = 'B';
         map.m[2][8] = 'A';
+
         // #D#B#A#C#
         map.m[3][2] = 'D';
         map.m[3][4] = 'B';
@@ -351,13 +329,34 @@ static bool isMapEqual(int roomSize, const Map *a, const Map *b) {
     return true;
 }
 
+// I winged this one, did some checks on distributions. Look ok for my input.
+static inline uint64_t mapHash(const int8_t m[5][11]) {
+    return (((uint64_t)(m[1][2]) & 3) << 0) |
+           (((uint64_t)(m[1][4]) & 3) << 1) |
+           (((uint64_t)(m[1][6]) & 3) << 2) |
+           (((uint64_t)(m[1][8]) & 3) << 3) |
+           (((uint64_t)(m[2][2]) & 3) << 4) |
+           (((uint64_t)(m[2][4]) & 3) << 5) |
+           (((uint64_t)(m[2][6]) & 3) << 6) |
+           (((uint64_t)(m[2][8]) & 3) << 7) |
+           (((uint64_t)(m[0][0]) & 3) << 8) |
+           (((uint64_t)(m[0][1]) & 3) << 9) |
+           (((uint64_t)(m[0][3]) & 3) << 10) |
+           (((uint64_t)(m[0][5]) & 3) << 11) |
+           (((uint64_t)(m[0][7]) & 3) << 13);
+}
+
 static int partOne(int roomSize, const Map *map) {
     int minEnergy = INT_MAX;
 
     Amp amps[16] = {0};
     Map maps[10] = {0};
 
+    iQueue = 0;
+    nQueue = 0;
     queue[nQueue++] = *map;
+
+    memset(nVisitedTable, 0, sizeof(nVisitedTable));
 
     while (iQueue < nQueue) {
         Map *m = &queue[iQueue++];
@@ -377,23 +376,27 @@ static int partOne(int roomSize, const Map *map) {
 
             for (int j = 0; j < nMaps; ++j) {
                 if (maps[j].energy < minEnergy) {
-                    bool visited = false;
+                    uint64_t hash = mapHash(maps[j].m);
+                    int hashIndex = hash & INDEX_CAP;
 
-                    // This could be replaced with a priority queue instead to speed things up :)
-                    // But then I have to come up with a nice hash function.
-                    for (int64_t k = iQueue; k < nQueue; ++k) {
-                        if (isMapEqual(roomSize, &maps[j], &queue[k])) {
-                            if (queue[k].energy > maps[j].energy) {
-                                queue[k].energy = maps[j].energy;
-                            }
+                    int visitedMap = -1;
 
-                            visited = true;
+                    for (int k = 0; k < nVisitedTable[hashIndex]; ++k) {
+                        int queueIndex = visitedTable[hashIndex][k];
+                        if (isMapEqual(roomSize, &queue[queueIndex], &maps[j])) {
+                            visitedMap = queueIndex;
                             break;
                         }
                     }
 
-                    if (!visited) {
+                    if (visitedMap >= 0) {
+                        if (queue[visitedMap].energy > maps[j].energy) {
+                            queue[visitedMap].energy = maps[j].energy;
+                        }
+                    } else {
                         assert(nQueue < QUEUE_CAP);
+
+                        visitedTable[hashIndex][nVisitedTable[hashIndex]++] = nQueue;
                         queue[nQueue++] = maps[j];
                     }
                 }
