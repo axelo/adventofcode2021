@@ -17,8 +17,9 @@ static int nQueue = 0;
 static int iQueue = 0;
 
 #define INDEX_CAP 0x3fff
+#define BUCKET_CAP 800
 
-static int visitedTable[INDEX_CAP + 1][100];
+static int visitedTable[INDEX_CAP + 1][BUCKET_CAP];
 static int16_t nVisitedTable[INDEX_CAP + 1] = {0};
 
 static Map parse(const char *input, bool part2) {
@@ -395,6 +396,7 @@ static int partOne(int roomSize, const Map *map) {
                         }
                     } else {
                         assert(nQueue < QUEUE_CAP);
+                        assert(nVisitedTable[hashIndex] < BUCKET_CAP);
 
                         visitedTable[hashIndex][nVisitedTable[hashIndex]++] = nQueue;
                         queue[nQueue++] = maps[j];
